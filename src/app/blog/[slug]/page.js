@@ -1,189 +1,408 @@
 // src/app/blog/[slug]/page.js
 'use client'
-import { useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { useTheme } from '@/context/ThemeContext'
-import Image from 'next/image'
-import Link from 'next/link'
-import React from 'react'; // Import React to use React.use()
 
-import mockBlogPosts from '@/constants/mockBlogPosts' // Import your mock data
-import LogoReveal from '@/components/utility/LogoReveal'
+// --- REMOVE THIS LINE: We will fetch data dynamically ---
+// import mockBlogPosts from '@/constants/mockBlogPosts'
+
+import LogoReveal from '@/components/utility/LogoReveal' // Keep if used elsewhere, but likely not on a single post page
 import ThemeToggle from '@/components/utility/ThemeToggle'
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { notFound } from 'next/navigation'; // Import notFound for proper 404 handling
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowLeft, Clock, User, Share2, ChevronUp, BookOpen, Heart } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
+import './../blog.css' // Adjusted relative path assuming blog.css is in src/app/blog/
 
-// SVG for a decorative background element (abstract code/crafting theme) - Reused for consistency
-const DecorativeSVG = ({ isDark }) => (
-  <svg
-    className="absolute top-0 left-0 w-full h-full z-0 opacity-10"
-    viewBox="0 0 1000 1000"
-    xmlns="http://www.w3.org/2000/svg"
-    style={{ pointerEvents: 'none' }}
-  >
-    <defs>
-      <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor={isDark ? "rgba(229,9,20,0.5)" : "rgba(255,59,59,0.3)"} />
-        <stop offset="100%" stopColor={isDark ? "rgba(150,0,50,0.5)" : "rgba(255,100,100,0.3)"} />
-      </linearGradient>
-    </defs>
-    <g fill="url(#redGradient)">
-      {/* Abstract code lines */}
-      <rect x="50" y="100" width="150" height="5" rx="2" ry="2" />
-      <rect x="70" y="120" width="100" height="5" rx="2" ry="2" />
-      <rect x="90" y="140" width="120" height="5" rx="2" ry="2" />
 
-      <rect x="800" y="200" width="150" height="5" rx="2" ry="2" />
-      <rect x="820" y="220" width="100" height="5" rx="2" ry="2" />
+// Register GSAP plugins
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
-      {/* Gears/Cogs for crafting/engineering */}
-      <circle cx="250" cy="750" r="40" />
-      <path d="M250 710 L255 700 L265 705 L260 715 Z" transform="rotate(0 250 750)" />
-      <path d="M250 710 L255 700 L265 705 L260 715 Z" transform="rotate(45 250 750)" />
-      <path d="M250 710 L255 700 L265 705 L260 715 Z" transform="rotate(90 250 750)" />
-      <path d="M250 710 L255 700 L265 705 L260 715 Z" transform="rotate(135 250 750)" />
-      <path d="M250 710 L255 700 L265 705 L260 715 Z" transform="rotate(180 250 750)" />
-      <path d="M250 710 L255 700 L265 705 L260 715 Z" transform="rotate(225 250 750)" />
-      <path d="M250 710 L255 700 L265 705 L260 715 Z" transform="rotate(270 250 750)" />
-      <path d="M250 710 L255 700 L265 705 L260 715 Z" transform="rotate(315 250 750)" />
-
-      {/* Abstract data points/nodes */}
-      <circle cx="700" cy="400" r="10" />
-      <circle cx="750" cy="450" r="12" />
-      <circle cx="650" cy="480" r="8" />
-      <line x1="700" y1="400" x2="750" y2="450" stroke="url(#redGradient)" strokeWidth="2" />
-      <line x1="700" y1="400" x2="650" y2="480" stroke="url(#redGradient)" strokeWidth="2" />
-    </g>
-  </svg>
-);
-
-// For App Router: get dynamic params via props
-export default function BlogPostPage({ params }) {
+const BlogPostPage = () => {
+  const params = useParams();
+  const slug = params.slug;
+  const router = useRouter();
   const { isDark } = useTheme();
+  const containerRef = useRef(null);
+  const progressRef = useRef(null);
+  const contentRef = useRef(null);
+  const [readingProgress, setReadingProgress] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
 
-  // --- KEY CHANGE HERE ---
-  // Unwrap the 'params' Promise using React.use()
-  const resolvedParams = React.use(params);
-  const { slug } = resolvedParams;
-  // --- END KEY CHANGE ---
+  // --- NEW STATE FOR POST DATA ---
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Find the blog post
-  const post = mockBlogPosts.find(p => p.slug === slug);
 
-  // If post not found, you might want to redirect or show a 404 message
-  if (!post) {
+  // --- NEW useEffect for data fetching ---
+  useEffect(() => {
+    const fetchPostData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch all posts from your API route
+        const response = await fetch('/api/blog-posts');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch posts: ${response.statusText}`);
+        }
+        const allPosts = await response.json();
+
+        // Find the specific post by slug
+        const foundPost = allPosts.find(p => p.slug === slug);
+
+        if (foundPost) {
+          setPost(foundPost);
+        } else {
+          // If post is not found after fetching, trigger Next.js 404
+          notFound();
+        }
+      } catch (err) {
+        console.error("Error fetching blog post:", err);
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) { // Only fetch if slug is available
+      fetchPostData();
+    }
+  }, [slug]); // Re-run effect if slug changes (though it shouldn't on this page)
+
+
+  // --- Update GSAP and other effects to depend on 'post' being loaded ---
+  useEffect(() => {
+    if (!post || typeof window === 'undefined' || !containerRef.current) return; // Ensure post is loaded and on client
+
+    const ctx = gsap.context(() => {
+      // Hero image parallax
+      gsap.to('.hero-image', {
+        yPercent: -30,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.hero-image',
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 0.5
+        }
+      });
+
+      // Content fade-in animations
+      gsap.from('.content-block', {
+        y: 60,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.2,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: contentRef.current,
+          start: 'top 80%'
+        }
+      });
+
+      // Animated decorative elements
+      gsap.from('.floating-element', {
+        y: 100,
+        opacity: 0,
+        duration: 1.2,
+        stagger: 0.3,
+        ease: 'back.out(1.7)',
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: 'top 60%'
+        }
+      });
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, [post]); // Add post to dependency array so animations run after data is loaded
+
+
+  // Reading progress and scroll tracking
+  useEffect(() => {
+    // Only set up scroll listener if post is loaded and contentRef is available
+    if (!post || !contentRef.current) return;
+
+    const updateProgress = () => {
+      // Ensure element exists before trying to get its height
+      if (!document.documentElement || !window) return;
+
+      const scrollTop = window.scrollY;
+      // Use the actual scrollable height of the content, not just document height
+      // This makes the progress more accurate for the actual article content
+      const contentHeight = contentRef.current.scrollHeight;
+      const viewportHeight = window.innerHeight;
+      const scrollableContent = contentHeight - viewportHeight;
+
+      let progress = 0;
+      if (scrollableContent > 0) {
+        progress = (scrollTop / scrollableContent) * 100;
+        progress = Math.min(100, Math.max(0, progress)); // Cap between 0 and 100
+      }
+
+      setReadingProgress(progress);
+      setShowScrollTop(scrollTop > 300);
+    };
+
+    window.addEventListener('scroll', updateProgress);
+    return () => window.removeEventListener('scroll', updateProgress);
+  }, [post]); // Depend on post so this effect re-runs when post data is available
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const sharePost = async () => {
+    if (!post) return; // Don't share if post isn't loaded
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: post.title, // Use post.title now
+          url: window.location.href
+        });
+      } catch (err) {
+        console.log('Share cancelled', err);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
+    }
+  };
+
+  // --- LOADING / ERROR / NOT FOUND STATES ---
+  if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
-        <p className="text-2xl font-bold">Blog post not found.</p>
-        <Link href="/blog" className="mt-4 text-red-500 hover:underline">
-          Back to Blog
-        </Link>
+      <div className="flex justify-center items-center h-screen bg-background text-foreground text-2xl animate-pulse">
+        Loading Post...
       </div>
     );
   }
 
-  return (
-    <div
-      className={`min-h-screen ${isDark ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-900'} transition-colors duration-300 relative overflow-hidden`}
-    >
-        <LogoReveal/>
-        <ThemeToggle/>
-      {/* Decorative SVG Background */}
-      <DecorativeSVG isDark={isDark} />
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-background text-destructive text-2xl">
+        Error loading post: {error.message}. Please try again.
+      </div>
+    );
+  }
 
-      {/* Main Content Area */}
-      <main className="relative z-10 max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+  // If post is null here, it means notFound() was likely called or an unexpected state
+  // We already handle notFound() within useEffect, so this is a final safeguard.
+  if (!post) {
+      return null;
+  }
+
+  return (
+    <div ref={containerRef} className={`min-h-screen ${isDark ? 'dark' : ''} bg-background transition-colors duration-500`}>
+      {/* Reading Progress Bar */}
+      <motion.div
+        ref={progressRef}
+        className="fixed top-0 left-0 h-1 bg-[#e50914] z-50"
+        style={{ width: `${readingProgress}%` }}
+        initial={{ width: 0 }}
+        animate={{ width: `${readingProgress}%` }}
+      />
+
+      {/* Header */}
+      <header className="fixed top-4 left-4 right-4 z-40 flex justify-between items-center">
         <Link
           href="/blog"
-          className={`inline-flex items-center text-sm font-medium mb-8 ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+          className="glass-float p-3 rounded-full hover-float glow-effect group"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to all posts
+          <ArrowLeft className="h-5 w-5 text-primary group-hover:text-primary-glow transition-colors" />
         </Link>
+        <ThemeToggle />
+      </header>
 
-        <motion.article
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className={`rounded-xl p-6 md:p-10 lg:p-12 shadow-xl ${
-            isDark
-              ? 'bg-gray-900 border border-red-900/40'
-              : 'bg-white border border-red-100/80'
-          }`}
+      {/* Floating Action Buttons */}
+      <div className="fixed right-6 bottom-6 z-40 space-y-3">
+        <motion.button
+          onClick={sharePost}
+          className="glass-float p-3 rounded-full hover-float glow-effect group"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
         >
-          {/* Featured Image */}
-          <div className="relative w-full h-64 md:h-80 rounded-lg overflow-hidden mb-8 shadow-md">
-            <Image
-              src={post.featuredImage}
-              alt={post.imageAlt}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          </div>
+          <Share2 className="h-5 w-5 text-primary group-hover:text-primary-glow transition-colors" />
+        </motion.button>
 
-          {/* Blog Post Header */}
-          <header className="mb-8 text-center">
-            <h1 className={`text-3xl md:text-4xl font-extrabold leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {post.title}
-            </h1>
-            <p className={`mt-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              By <span className="font-semibold">{post.author}</span> on {post.date} &bull; {post.readTime}
-            </p>
-            {post.tags && post.tags.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-2 mt-4">
+        <motion.button
+          onClick={() => setIsLiked(!isLiked)}
+          className="glass-float p-3 rounded-full hover-float glow-effect group"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Heart className={`h-5 w-5 transition-colors ${isLiked ? 'text-red-500 fill-current' : 'text-primary group-hover:text-primary-glow'}`} />
+        </motion.button>
+
+        {showScrollTop && (
+          <motion.button
+            onClick={scrollToTop}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0 }}
+            className="glass-float p-3 rounded-full hover-float glow-effect group"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <ChevronUp className="h-5 w-5 text-primary group-hover:text-primary-glow transition-colors" />
+          </motion.button>
+        )}
+      </div>
+
+      {/* Hero Section */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0 opacity-20">
+          <svg className="w-full h-full" viewBox="0 0 1000 1000">
+            <defs>
+              <linearGradient id="heroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="hsl(var(--primary))" />
+                <stop offset="100%" stopColor="hsl(var(--primary-glow))" />
+              </linearGradient>
+            </defs>
+            <g className="floating-element">
+              <circle cx="200" cy="200" r="3" fill="url(#heroGradient)" className="animate-pulse-glow" />
+              <circle cx="800" cy="300" r="2" fill="url(#heroGradient)" className="animate-pulse-glow" style={{ animationDelay: '1s' }} />
+              <circle cx="600" cy="700" r="4" fill="url(#heroGradient)" className="animate-pulse-glow" style={{ animationDelay: '2s' }} />
+            </g>
+            <g className="floating-element">
+              <path d="M100,500 Q300,400 500,500 T900,500" stroke="url(#heroGradient)" strokeWidth="1" fill="none" opacity="0.3" />
+              <path d="M150,300 Q400,200 650,300" stroke="url(#heroGradient)" strokeWidth="1" fill="none" opacity="0.2" />
+            </g>
+          </svg>
+        </div>
+
+        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="mb-8"
+          >
+            {post.tags && (
+              <div className="flex flex-wrap justify-center gap-2 mb-6">
                 {post.tags.map(tag => (
-                  <span key={tag} className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                    isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'
-                  }`}>
+                  <span
+                    key={tag}
+                    className="glass-float px-3 py-1 text-xs font-medium rounded-full"
+                  >
                     {tag}
                   </span>
                 ))}
               </div>
             )}
-          </header>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-[#e50914] bg-clip-text text-[#e50914] leading-tight">
+              {post.title}
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              {post.excerpt}
+            </p>
+          </motion.div>
 
-          {/* Blog Post Content */}
-          <div className={`prose max-w-none ${isDark ? 'prose-invert prose-red' : 'prose-red'}`}>
-            {post.content.map((block, index) => {
-              if (block.type === "paragraph") {
-                return <p key={index}>{block.text}</p>;
-              } else if (block.type === "heading") {
-                const HeadingTag = `h${block.level}`;
-                return <HeadingTag key={index}>{block.text}</HeadingTag>;
-              } else if (block.type === "code") {
-                return (
-                  <pre key={index} className={`${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'} p-4 rounded-md overflow-x-auto text-sm`}>
-                    <code>{block.text}</code>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground"
+          >
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span>{post.author}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>{post.readTime}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span>{post.date}</span>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Featured Image */}
+      <section className="relative h-96 md:h-[500px] overflow-hidden">
+        <div className="hero-image absolute inset-0">
+          {post.featuredImage ? (
+            <img
+              src={post.featuredImage}
+              alt={post.imageAlt || post.title || 'Blog post featured image'}
+              className="w-full h-full object-cover scale-110"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
+              No Featured Image
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
+        </div>
+      </section>
+
+      {/* Content */}
+      <section ref={contentRef} className="relative z-10 max-w-4xl mx-auto px-6 py-16">
+        <div className="prose prose-lg max-w-none dark:prose-invert">
+          {post.content?.map((block, index) => (
+            <div key={index} className="content-block mb-8">
+              {block.type === 'paragraph' && (
+                <p className="text-foreground leading-relaxed text-base">{block.text}</p>
+              )}
+              {block.type === 'heading' && (
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4 bg-[#e50914] bg-clip-text text-[#e50914]">
+                  {block.text}
+                </h2>
+              )}
+              {block.type === 'code' && (
+                <div className="glass-float p-6 rounded-xl overflow-x-auto">
+                  <pre className="text-sm">
+                    <code className="text-foreground">{block.text}</code>
                   </pre>
-                );
-              }
-              return null;
-            })}
-          </div>
+                </div>
+              )}
+              {block.type === 'quote' && (
+                <blockquote className="glass-float p-6 rounded-xl border-l-4 border-primary">
+                  <p className="text-lg italic text-foreground ">{block.text}</p>
+                </blockquote>
+              )}
+            </div>
+          ))}
+        </div>
 
-          {/* Optional: Call to Action or Social Links */}
-          <footer className="mt-12 pt-8 border-t text-center space-y-4">
-            <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Found this helpful? Connect with me!
+        {/* Call to Action */}
+        <motion.div
+          className="mt-16 text-center"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+        >
+          <div className="glass-float p-8 rounded-2xl">
+            <h3 className="text-2xl font-bold mb-4 bg-[#e50914] bg-clip-text text-[#e50914]">
+              Enjoyed this article?
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Connect with me for more insights and discussions about development, design, and technology.
             </p>
             <Link
-              href="/contact" // Placeholder for a contact page
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-gradient-to-r from-red-600 to-fuchsia-700 hover:from-red-700 hover:to-fuchsia-800 transition-all duration-300"
+              href="/blog"
+              className="inline-flex items-center gap-2 border-gray-300 px-6 py-3 rounded-full font-medium hover-float transition-all"
             >
-              Get in Touch
-              <svg className="ml-2 -mr-1 w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
+              Read More Articles
+              <ArrowLeft className="h-4 w-4 rotate-180" />
             </Link>
-          </footer>
-        </motion.article>
-      </main>
-
-      {/* Optional: Simple Footer */}
-      <footer className={`relative z-10 py-8 text-center text-sm ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>
-        <p>&copy; {new Date().getFullYear()} My Blog. All rights reserved.</p>
-      </footer>
+          </div>
+        </motion.div>
+      </section>
     </div>
   );
-}
+};
+
+export default BlogPostPage;

@@ -14,6 +14,12 @@ export default function AnimatedQuote() {
   const textTopRef = useRef(null)
   const textBottomRef = useRef(null)
 
+  const personalImages = [
+    '/images/nainital1.jpeg',
+    '/images/nainital2.jpeg',
+    '/images/nainital3.jpeg',
+    '/images/nainital4.jpeg',
+  ]
   useEffect(() => {
     const ctx = gsap.context(() => {
       // Prepare each polyline for a “draw” animation
@@ -75,6 +81,10 @@ export default function AnimatedQuote() {
       ref={blockRef}
       className="relative my-20 mx-auto w-full max-w-3xl"
     >
+      <div className="fixed top-6 right-6 z-50 flex justify-between items-center w-full px-6">
+        <LogoReveal />
+        <ThemeToggle />
+      </div>
       <svg
         viewBox="0 0 455.3 443"
         className="w-full h-auto"

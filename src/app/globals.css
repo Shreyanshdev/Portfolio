@@ -129,4 +129,23 @@ body {
   scroll-margin-top: 80px; /* Offset for sticky header when linking to headings */
   line-height: 1.25; /* Tighter line height for headings */
 }
+@layer utilities {
+  .glow-hover::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    background: radial-gradient(circle, hsla(355, 78%, 55%, 0.3), transparent);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+
+  .glow-hover:hover::before {
+    opacity: 1;
+  }
+}
+
+
+
 

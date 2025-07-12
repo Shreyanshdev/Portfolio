@@ -1,0 +1,471 @@
+/* app/blog/blog.css */
+
+/* --- Base Variables & Dark Mode --- */
+/* These define your design tokens for both light and dark themes */
+:root {
+    /* Core Brand Colors */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+  
+    /* Glassmorphism Cards */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --glass: 0 0% 100% / 0.1;
+    --glass-border: 0 0% 100% / 0.2;
+  
+    /* Popover & Overlays */
+    --popover: 0 0% 100% / 0.95;
+    --popover-foreground: 0 0% 0%;
+  
+    /* Primary Red Brand */
+    --primary: 355 78% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 355 78% 55%;
+    --primary-dark: 355 78% 35%;
+  
+    /* Secondary & Accents */
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 15%;
+    --accent: 355 78% 45%;
+    --accent-foreground: 0 0% 100%;
+  
+    /* Muted Tones */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+  
+    /* Interactive States */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+  
+    /* Borders & Inputs */
+    --border: 0 0% 90%;
+    --input: 0 0% 94%;
+    --ring: 355 78% 45%;
+  
+    /* Design Tokens */
+    --radius: 1rem;
+  
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(355, 78%, 45%), hsl(355, 78%, 35%));
+    --gradient-glass: linear-gradient(135deg, hsl(0, 0%, 100%, 0.1), hsl(0, 0%, 100%, 0.05));
+    --gradient-glow: radial-gradient(circle, hsl(355, 78%, 45%, 0.3), transparent);
+  
+    /* Shadows */
+    --shadow-glass: 0 8px 32px hsl(0, 0%, 0%, 0.1);
+    --shadow-float: 0 20px 40px hsl(0, 0%, 0%, 0.15);
+    --shadow-glow: 0 0 40px hsl(355, 78%, 45%, 0.3);
+  
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+    /* Sidebar specific variables */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  
+    /* Font Family - Direct CSS variable usage */
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  }
+  
+  /* Dark Theme Variables */
+  .dark {
+    /* Core Dark Colors */
+    --background: 0 0% 5%;
+    --foreground: 0 0% 95%;
+  
+    /* Dark Glassmorphism */
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 95%;
+    --glass: 0 0% 0% / 0.3;
+    --glass-border: 0 0% 100% / 0.1;
+  
+    /* Dark Overlays */
+    --popover: 0 0% 8% / 0.95;
+    --popover-foreground: 0 0% 95%;
+  
+    /* Primary Red (Brighter in Dark) */
+    --primary: 355 78% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 355 78% 65%;
+    --primary-dark: 355 78% 45%;
+  
+    /* Dark Secondary */
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 85%;
+    --accent: 355 78% 55%;
+    --accent-foreground: 0 0% 100%;
+  
+    /* Dark Muted */
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+  
+    /* Dark Interactive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+  
+    /* Dark Borders */
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 355 78% 55%;
+  
+    /* Dark Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(355, 78%, 55%), hsl(355, 78%, 45%));
+    --gradient-glass: linear-gradient(135deg, hsl(0, 0%, 0%, 0.3), hsl(0, 0%, 0%, 0.1));
+    --gradient-glow: radial-gradient(circle, hsl(355, 78%, 55%, 0.4), transparent);
+  
+    /* Dark Shadows */
+    --shadow-glass: 0 8px 32px hsl(0, 0%, 0%, 0.5);
+    --shadow-float: 0 20px 40px hsl(0, 0%, 0%, 0.6);
+    --shadow-glow: 0 0 40px hsl(355, 78%, 55%, 0.4);
+  
+    /* Dark Sidebar specific variables */
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  
+  /* --- Global Body Styles --- */
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    transition: background-color 0.5s ease, color 0.5s ease; /* Smooth theme transition */
+    font-family: var(--font-sans); /* Use the CSS variable for font */
+    line-height: 1.5;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+  }
+  
+  /* --- Custom Component/Utility Classes --- */
+  
+  /* Glassmorphism Effect */
+  .glass {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: var(--shadow-glass);
+  }
+  
+  .glass-card {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: var(--shadow-glass);
+    border-radius: var(--radius); /* Uses --radius directly */
+    padding: 1.5rem; /* Or specific padding */
+  }
+  
+  .glass-float {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
+    border: 1px solid hsl(var(--glass-border)) ;
+    box-shadow: var(--shadow-glass);
+    box-shadow: var(--shadow-float); /* Specific float shadow */
+    border-radius: calc(var(--radius));
+    padding: 1rem; /* Slightly smaller radius for float */
+    transform: translateZ(0); /* Ensures hardware acceleration for animations */
+  }
+  
+  /* Hover Effect for Floating Elements */
+  .hover-float {
+    transition: var(--transition-smooth);
+  }
+  
+  .hover-float:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-float);
+  }
+  
+  /* General Glow Effect (for buttons, cards etc.) */
+  .glow-effect {
+    position: relative;
+    z-index: 1; /* Ensure content is above glow */
+  }
+  
+  .glow-effect::before {
+    content: '';
+    position: absolute;
+    inset: -2px; /* Expands slightly beyond element */
+    background: var(--gradient-glow);
+    border-radius: inherit; /* Inherit border-radius from parent */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1; /* Place behind content */
+  }
+  
+  .glow-effect:hover::before {
+    opacity: 1;
+  }
+  
+  /* Text Gradient */
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent; /* Fallback */
+    background-size: 200% 200%; /* Needed for gradient-shift animation */
+    animation: gradient-shift 4s ease infinite; /* Apply animation directly */
+  }
+  
+  /* Scrollbar styling for sticky right column */
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  /* Image Grid Artistic Layout */
+  .image-grid-artistic {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1rem;
+    position: relative;
+  }
+  
+  .image-artistic-1 { grid-column: 1 / 6; grid-row: 1 / 3; transform: rotate(-2deg); z-index: 3; }
+  .image-artistic-2 { grid-column: 5 / 9; grid-row: 2 / 4; transform: rotate(1.5deg); z-index: 2; }
+  .image-artistic-3 { grid-column: 8 / 13; grid-row: 1 / 3; transform: rotate(-1deg); z-index: 4; }
+  .image-artistic-4 { grid-column: 2 / 7; grid-row: 3 / 5; transform: rotate(2deg); z-index: 1; }
+  .image-artistic-5 { grid-column: 7 / 12; grid-row: 3 / 5; transform: rotate(-0.5deg); z-index: 2; }
+  
+  /* Responsive adjustments for image grid */
+  @media (max-width: 1024px) {
+    .image-grid-artistic {
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: auto;
+    }
+    .image-artistic-1 { grid-area: 1 / 1 / auto / 2; transform: rotate(0deg); }
+    .image-artistic-2 { grid-area: 1 / 2 / auto / 3; transform: rotate(0deg); }
+    .image-artistic-3 { grid-area: 2 / 1 / auto / 2; transform: rotate(0deg); }
+    .image-artistic-4 { grid-area: 2 / 2 / auto / 3; transform: rotate(0deg); }
+    .image-artistic-5 { grid-area: 3 / 1 / auto / 2; transform: rotate(0deg); }
+  }
+  
+  @media (max-width: 768px) {
+    .image-grid-artistic {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+    }
+    .image-artistic-1, .image-artistic-2, .image-artistic-3, .image-artistic-4, .image-artistic-5 {
+      grid-area: auto;
+      transform: rotate(0deg) !important;
+    }
+  }
+  
+  /* --- Animations --- */
+  /* Define the keyframes here, then apply via `animation` property in classes */
+  @keyframes accordion-down {
+    from { height: '0'; }
+    to { height: 'var(--radix-accordion-content-height)'; }
+  }
+  
+  @keyframes accordion-up {
+    from { height: 'var(--radix-accordion-content-height)'; }
+    to { height: '0'; }
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(var(--rotate, 0deg)); }
+    50% { transform: translateY(-10px) rotate(var(--rotate, 0deg)); }
+  }
+  
+  @keyframes float-delayed {
+    0%, 100% { transform: translateY(0px) rotate(2deg); }
+    50% { transform: translateY(-15px) rotate(2deg); }
+  }
+  
+  @keyframes rotate-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px hsl(var(--primary), 0.3); }
+    50% { box-shadow: 0 0 40px hsl(var(--primary), 0.6); }
+  }
+  
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Animation utility classes */
+  .animate-accordion-down { animation: accordion-down 0.2s ease-out; }
+  .animate-accordion-up { animation: accordion-up 0.2s ease-out; }
+  .animate-float { animation: float 6s ease-in-out infinite; }
+  .animate-float-delayed { animation: float-delayed 8s ease-in-out infinite; }
+  .animate-rotate-slow { animation: rotate-slow 20s linear infinite; }
+  .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+  .animate-gradient-shift { animation: gradient-shift 4s ease infinite; }
+  .animate-fade-up { animation: fade-up 0.8s ease-out; }
+  
+  /* --- Specific Styles for Typography (Prose) --- */
+  /* These styles mimic the @tailwindcss/typography plugin behavior for basic markdown content. */
+  .prose {
+    font-family: var(--font-sans);
+    line-height: 1.75;
+    font-size: 1.125rem;
+    max-width: 100%;
+    color: hsl(var(--foreground));
+  }
+  
+  .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+    color: hsl(var(--foreground));
+    font-weight: 700;
+    margin-top: 1.5em;
+    margin-bottom: 0.75em;
+    line-height: 1.2;
+  }
+  
+  .prose h1 { font-size: 2.5em; }
+  .prose h2 { font-size: 2em; }
+  .prose h3 { font-size: 1.75em; }
+  .prose h4 { font-size: 1.5em; }
+  
+  .prose p {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    color: hsl(var(--foreground));
+  }
+  
+  .prose strong {
+    font-weight: 700;
+    color: hsl(var(--foreground));
+  }
+  
+  .prose a {
+    color: hsl(var(--primary));
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .prose a:hover {
+    text-decoration: underline;
+    color: hsl(var(--primary-glow));
+  }
+  
+  .prose ol, .prose ul {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    padding-left: 1.5em;
+  }
+  
+  .prose li {
+    margin-bottom: 0.5em;
+  }
+  
+  .prose blockquote {
+    border-left: 0.25rem solid hsl(var(--primary));
+    padding-left: 1rem;
+    margin-left: 0;
+    margin-right: 0;
+    font-style: italic;
+    color: hsl(var(--muted-foreground));
+  }
+  
+  .prose code {
+    font-family: monospace;
+    background-color: hsl(var(--muted));
+    padding: 0.2em 0.4em;
+    border-radius: 0.3em;
+    font-size: 0.875em;
+    color: hsl(var(--foreground));
+  }
+  
+  .prose pre {
+    background-color: hsl(var(--card));
+    border-radius: var(--radius);
+    padding: 1em;
+    overflow-x: auto;
+    font-size: 0.9em;
+    line-height: 1.4;
+    color: hsl(var(--card-foreground));
+  }
+  
+  /* Dark mode specific prose styles */
+  .dark .prose {
+    color: hsl(var(--foreground));
+  }
+  
+  .dark .prose h1, .dark .prose h2, .dark .prose h3, .dark .prose h4, .dark .prose h5, .dark .prose h6 {
+    color: hsl(var(--foreground));
+  }
+  
+  .dark .prose p {
+    color: hsl(var(--foreground));
+  }
+  
+  .dark .prose strong {
+    color: hsl(var(--foreground));
+  }
+  
+  .dark .prose a {
+    color: hsl(var(--primary-glow));
+  }
+  
+  .dark .prose code {
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--foreground));
+  }
+  
+  .dark .prose pre {
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+  }
+  
+  .dark .prose blockquote {
+    border-left-color: hsl(var(--primary-glow));
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hover-float {
+    transition: var(--transition-smooth);
+  }
+
+  .hover-float:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-float);
+  }
+
+  .glow-effect {
+    position: relative;
+  }
+
+  .glow-effect::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: var(--gradient-glow);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+
+  .glow-effect:hover::before {
+    opacity: 1;
+  }
+
+  
+  

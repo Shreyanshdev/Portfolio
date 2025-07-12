@@ -80,7 +80,18 @@ export default function ProjectsSection() {
       return mockProjects.filter(p => p.type === activeFilter);
     }
   }, [activeFilter]);
-
+  useEffect(() => {
+    if (selected) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+  
+    // Cleanup on unmount or route change
+    return () => {
+      document.body.classList.remove('overflow-hidden');
+    };
+  }, [selected]);
 
   useEffect(() => {
     cardRefs.current = [];
@@ -274,149 +285,150 @@ export default function ProjectsSection() {
 
       {/* Enhanced Modal (remains unchanged from previous versions, included for completeness) */}
       <AnimatePresence>
-        {selected && (
-          <motion.div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelected(null)}
-          >
-            {/* Backdrop */}
-            <motion.div
-              className="absolute inset-0 bg-black/60 backdrop-blur-md"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
+  {selected && (
+    <motion.div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={() => setSelected(null)}
+    >
+      {/* Backdrop */}
+      <motion.div
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      />
 
-            {/* Modal Content */}
-            <motion.div
-              className="max-w-3xl w-full rounded-2xl relative z-10 overflow-hidden"
-              initial={{ scale: 0.9, opacity: 0, y: 30 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 30 }}
-              transition={{ type: 'spring', bounce: 0.25 }}
-              onClick={(e) => e.stopPropagation()}
+      {/* Modal Content */}
+      <motion.div
+        className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl relative z-10"
+        initial={{ scale: 0.9, opacity: 0, y: 30 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 30 }}
+        transition={{ type: 'spring', bounce: 0.25 }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: isDark
+            ? 'linear-gradient(135deg, rgba(20,20,25,0.9), rgba(10,10,15,0.95))'
+            : 'linear-gradient(135deg, rgba(250,250,255,0.95), rgba(255,255,255,0.98))',
+          border: isDark
+            ? '1px solid rgba(255,59,59,0.2)'
+            : '1px solid rgba(229,9,20,0.15)',
+          boxShadow: isDark
+            ? '0 25px 50px -12px rgba(0,0,0,0.5)'
+            : '0 25px 50px -12px rgba(0,0,0,0.15)',
+        }}
+      >
+        <button
+          onClick={() => setSelected(null)}
+          className="absolute top-5 right-5 z-20 p-2 rounded-full cursor-pointer"
+          style={{
+            background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isDark ? '#fff' : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <div className="relative h-52 sm:h-64 md:h-80 w-full">
+          <Image
+            src={selected.image}
+            alt={selected.name}
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        </div>
+
+        <div className="p-5 md:p-8">
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <h2 className={`text-xl md:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {selected.name}
+            </h2>
+            {selected.featured && (
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-red-500 to-fuchsia-600 text-white">
+                Featured
+              </span>
+            )}
+          </div>
+
+          <p className={`text-sm md:text-base mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            {selected.description}
+          </p>
+
+          <div className="mb-8">
+            <h3 className={`text-base md:text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Technologies Used
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {selected.tech.map((t) => (
+                <span
+                  key={t}
+                  className={`px-3 py-1.5 rounded-full text-sm ${
+                    isDark
+                      ? 'bg-gray-800/70 text-gray-200'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4">
+            <a
+              href={selected.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 min-w-[150px] text-center px-5 py-3 rounded-xl font-medium flex items-center justify-center gap-2"
               style={{
                 background: isDark
-                  ? 'linear-gradient(135deg, rgba(20,20,25,0.9), rgba(10,10,15,0.95))'
-                  : 'linear-gradient(135deg, rgba(250,250,255,0.95), rgba(255,255,255,0.98))',
+                  ? 'linear-gradient(135deg, rgba(30,30,35,0.8), rgba(15,15,20,0.9))'
+                  : 'linear-gradient(135deg, rgba(240,240,245,0.9), rgba(255,255,255,0.95))',
+                color: isDark ? '#fff' : '#1a1a1a',
                 border: isDark
                   ? '1px solid rgba(255,59,59,0.2)'
                   : '1px solid rgba(229,9,20,0.15)',
-                boxShadow: isDark
-                  ? '0 25px 50px -12px rgba(0,0,0,0.5)'
-                  : '0 25px 50px -12px rgba(0,0,0,0.15)',
               }}
             >
-              <button
-                onClick={() => setSelected(null)}
-                className="absolute top-5 right-5 z-20 p-2 rounded-full cursor-pointer"
-                style={{
-                  background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isDark ? '#fff' : '#333'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+              </svg>
+              GitHub
+            </a>
 
-              <div className="relative h-64 md:h-80 w-full">
-                <Image
-                  src={selected.image}
-                  alt={selected.name}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
+            <a
+              href={selected.live}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 min-w-[150px] text-center px-5 py-3 rounded-xl font-medium flex items-center justify-center gap-2"
+              style={{
+                background: 'linear-gradient(135deg, rgba(229,9,20,0.1), rgba(255,59,59,0.05))',
+                color: isDark ? '#ff9b9b' : '#e50914',
+                border: isDark
+                  ? '1px solid rgba(255,59,59,0.2)'
+                  : '1px solid rgba(229,9,20,0.15)',
+              }}
+            >
+              <span>Live Demo</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 16 16 12 12 8"></polyline>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
 
-              <div className="p-6 md:p-8">
-                <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <h2 className={`text-2xl md:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {selected.name}
-                  </h2>
-                  {selected.featured && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-red-500 to-fuchsia-600 text-white">
-                      Featured
-                    </span>
-                  )}
-                </div>
-
-                <p className={`text-base mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  {selected.description}
-                </p>
-
-                <div className="mb-8">
-                  <h3 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    Technologies Used
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selected.tech.map((t) => (
-                      <span
-                        key={t}
-                        className={`px-3 py-1.5 rounded-full text-sm ${
-                          isDark
-                            ? 'bg-gray-800/70 text-gray-200'
-                            : 'bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-4">
-                  <a
-                    href={selected.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 min-w-[150px] text-center px-5 py-3 rounded-xl font-medium flex items-center justify-center gap-2"
-                    style={{
-                      background: isDark
-                        ? 'linear-gradient(135deg, rgba(30,30,35,0.8), rgba(15,15,20,0.9))'
-                        : 'linear-gradient(135deg, rgba(240,240,245,0.9), rgba(255,255,255,0.95))',
-                      color: isDark ? '#fff' : '#1a1a1a',
-                      border: isDark
-                        ? '1px solid rgba(255,59,59,0.2)'
-                        : '1px solid rgba(229,9,20,0.15)',
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                    </svg>
-                    GitHub
-                  </a>
-
-                  <a
-                    href={selected.live}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 min-w-[150px] text-center px-5 py-3 rounded-xl font-medium flex items-center justify-center gap-2"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(229,9,20,0.1), rgba(255,59,59,0.05))',
-                      color: isDark ? '#ff9b9b' : '#e50914',
-                      border: isDark
-                        ? '1px solid rgba(255,59,59,0.2)'
-                        : '1px solid rgba(229,9,20,0.15)',
-                    }}
-                  >
-                    <span>Live Demo</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12 16 16 12 12 8"></polyline>
-                      <line x1="8" y1="12" x2="16" y2="12"></line>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   )
 }

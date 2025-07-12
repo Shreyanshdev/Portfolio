@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import gsap from 'gsap'
 import Particle from './Particle'
-import MouseTrail from './MouseTrail'
+import MouseTrail from '../MouseTrail'
 import { useTheme } from '@/context/ThemeContext'
 
 const BRAND = 'Shreyansh'.toUpperCase().split('')
