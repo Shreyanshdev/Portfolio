@@ -1,471 +1,565 @@
-/* app/blog/blog.css */
+.light-theme {
+  background-color: #FFFFFF; /* --background: 0 0% 100%; */
+  color: #000000;            /* --foreground: 0 0% 0%; */
+  transition: all 0.5s ease; /* Smooth theme transition */
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; /* --font-sans */
+  line-height: 1.5;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
 
-/* --- Base Variables & Dark Mode --- */
-/* These define your design tokens for both light and dark themes */
-:root {
-    /* Core Brand Colors */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
-  
-    /* Glassmorphism Cards */
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-    --glass: 0 0% 100% / 0.1;
-    --glass-border: 0 0% 100% / 0.2;
-  
-    /* Popover & Overlays */
-    --popover: 0 0% 100% / 0.95;
-    --popover-foreground: 0 0% 0%;
-  
-    /* Primary Red Brand */
-    --primary: 355 78% 45%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 355 78% 55%;
-    --primary-dark: 355 78% 35%;
-  
-    /* Secondary & Accents */
-    --secondary: 0 0% 95%;
-    --secondary-foreground: 0 0% 15%;
-    --accent: 355 78% 45%;
-    --accent-foreground: 0 0% 100%;
-  
-    /* Muted Tones */
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-  
-    /* Interactive States */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-  
-    /* Borders & Inputs */
-    --border: 0 0% 90%;
-    --input: 0 0% 94%;
-    --ring: 355 78% 45%;
-  
-    /* Design Tokens */
-    --radius: 1rem;
-  
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(355, 78%, 45%), hsl(355, 78%, 35%));
-    --gradient-glass: linear-gradient(135deg, hsl(0, 0%, 100%, 0.1), hsl(0, 0%, 100%, 0.05));
-    --gradient-glow: radial-gradient(circle, hsl(355, 78%, 45%, 0.3), transparent);
-  
-    /* Shadows */
-    --shadow-glass: 0 8px 32px hsl(0, 0%, 0%, 0.1);
-    --shadow-float: 0 20px 40px hsl(0, 0%, 0%, 0.15);
-    --shadow-glow: 0 0 40px hsl(355, 78%, 45%, 0.3);
-  
-    /* Transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  
-    /* Sidebar specific variables */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  
-    /* Font Family - Direct CSS variable usage */
-    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  }
-  
-  /* Dark Theme Variables */
-  .dark {
-    /* Core Dark Colors */
-    --background: 0 0% 5%;
-    --foreground: 0 0% 95%;
-  
-    /* Dark Glassmorphism */
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 95%;
-    --glass: 0 0% 0% / 0.3;
-    --glass-border: 0 0% 100% / 0.1;
-  
-    /* Dark Overlays */
-    --popover: 0 0% 8% / 0.95;
-    --popover-foreground: 0 0% 95%;
-  
-    /* Primary Red (Brighter in Dark) */
-    --primary: 355 78% 55%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 355 78% 65%;
-    --primary-dark: 355 78% 45%;
-  
-    /* Dark Secondary */
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 85%;
-    --accent: 355 78% 55%;
-    --accent-foreground: 0 0% 100%;
-  
-    /* Dark Muted */
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 60%;
-  
-    /* Dark Interactive */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-  
-    /* Dark Borders */
-    --border: 0 0% 20%;
-    --input: 0 0% 15%;
-    --ring: 355 78% 55%;
-  
-    /* Dark Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(355, 78%, 55%), hsl(355, 78%, 45%));
-    --gradient-glass: linear-gradient(135deg, hsl(0, 0%, 0%, 0.3), hsl(0, 0%, 0%, 0.1));
-    --gradient-glow: radial-gradient(circle, hsl(355, 78%, 55%, 0.4), transparent);
-  
-    /* Dark Shadows */
-    --shadow-glass: 0 8px 32px hsl(0, 0%, 0%, 0.5);
-    --shadow-float: 0 20px 40px hsl(0, 0%, 0%, 0.6);
-    --shadow-glow: 0 0 40px hsl(355, 78%, 55%, 0.4);
-  
-    /* Dark Sidebar specific variables */
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-  
-  /* --- Global Body Styles --- */
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    transition: background-color 0.5s ease, color 0.5s ease; /* Smooth theme transition */
-    font-family: var(--font-sans); /* Use the CSS variable for font */
-    line-height: 1.5;
-    overflow-x: hidden; /* Prevent horizontal scroll */
-  }
-  
-  /* --- Custom Component/Utility Classes --- */
-  
-  /* Glassmorphism Effect */
-  .glass {
-    background: var(--gradient-glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
-    border: 1px solid hsl(var(--glass-border));
-    box-shadow: var(--shadow-glass);
-  }
-  
-  .glass-card {
-    background: var(--gradient-glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
-    border: 1px solid hsl(var(--glass-border));
-    box-shadow: var(--shadow-glass);
-    border-radius: var(--radius); /* Uses --radius directly */
-    padding: 1.5rem; /* Or specific padding */
-  }
-  
-  .glass-float {
-    background: var(--gradient-glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
-    border: 1px solid hsl(var(--glass-border)) ;
-    box-shadow: var(--shadow-glass);
-    box-shadow: var(--shadow-float); /* Specific float shadow */
-    border-radius: calc(var(--radius));
-    padding: 1rem; /* Slightly smaller radius for float */
-    transform: translateZ(0); /* Ensures hardware acceleration for animations */
-  }
-  
-  /* Hover Effect for Floating Elements */
-  .hover-float {
-    transition: var(--transition-smooth);
-  }
-  
-  .hover-float:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-float);
-  }
-  
-  /* General Glow Effect (for buttons, cards etc.) */
-  .glow-effect {
-    position: relative;
-    z-index: 1; /* Ensure content is above glow */
-  }
-  
-  .glow-effect::before {
-    content: '';
-    position: absolute;
-    inset: -2px; /* Expands slightly beyond element */
-    background: var(--gradient-glow);
-    border-radius: inherit; /* Inherit border-radius from parent */
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: -1; /* Place behind content */
-  }
-  
-  .glow-effect:hover::before {
-    opacity: 1;
-  }
-  
-  /* Text Gradient */
-  .text-gradient {
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent; /* Fallback */
-    background-size: 200% 200%; /* Needed for gradient-shift animation */
-    animation: gradient-shift 4s ease infinite; /* Apply animation directly */
-  }
-  
-  /* Scrollbar styling for sticky right column */
-  .scrollbar-hide {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-  }
-  
-  /* Image Grid Artistic Layout */
+/* Dark Theme Body Styles */
+.dark-theme {
+  background-color: #0D0D0D; /* --background: 0 0% 5%; */
+  color: #F2F2F2;            /* --foreground: 0 0% 95%; */
+  transition: all 0.5s ease; /* Smooth theme transition */
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; /* --font-sans */
+  line-height: 1.5;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.glass-light {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)); /* From --gradient-glass light */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* From --glass-border light */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); /* From --shadow-glass light */
+}
+
+/* Glassmorphism Effect - Dark Theme */
+.glass-dark {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1)); /* From --gradient-glass dark */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* From --glass-border dark */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); /* From --shadow-glass dark */
+}
+
+/* Glassmorphism Card - Light Theme */
+.glass-card-light {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)); /* From --gradient-glass light */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* From --glass-border light */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); /* From --shadow-glass light */
+  border-radius: 1rem; /* From --radius */
+  padding: 1.5rem;
+}
+
+/* Glassmorphism Card - Dark Theme */
+.glass-card-dark {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1)); /* From --gradient-glass dark */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* From --glass-border dark */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); /* From --shadow-glass dark */
+  border-radius: 1rem; /* From --radius */
+  padding: 1.5rem;
+}
+
+/* Glassmorphism Float - Light Theme */
+.glass-float-light {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)); /* From --gradient-glass light */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* From --glass-border light */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
+  0 0 15px rgba(255, 0, 0, 0.5); /* From --shadow-float light */
+  border-radius:  50%; /* From --radius */
+  padding: 1rem;
+  cursor: pointer;
+  transform: translateZ(0);
+}
+
+/* Glassmorphism Float - Dark Theme */
+.glass-float-dark {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1)); /* From --gradient-glass dark */
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* From --glass-border dark */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
+              0 0 15px rgba(255, 0, 0, 0.5); /* From --shadow-float dark */
+  border-radius: 50%; /* From --radius */
+  padding: 1rem;
+  transform: translateZ(0);
+  cursor: pointer;
+}
+
+/* Hover Effect for Floating Elements */
+.hover-float {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* From --transition-smooth */
+}
+
+/* Hover Effect for Floating Elements - Light Theme */
+.hover-float.light-theme:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); /* From --shadow-float light */
+}
+
+/* Hover Effect for Floating Elements - Dark Theme */
+.hover-float.dark-theme:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6); /* From --shadow-float dark */
+}
+
+/* General Glow Effect (for buttons, cards etc.) - Light Theme */
+.glow-effect-light {
+  position: relative;
+  z-index: 1;
+}
+
+.glow-effect-light::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: radial-gradient(circle, rgba(185, 28, 64, 0.3), transparent); /* From --gradient-glow light */
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.glow-effect-light:hover::before {
+  opacity: 1;
+}
+
+/* General Glow Effect (for buttons, cards etc.) - Dark Theme */
+.glow-effect-dark {
+  position: relative;
+  z-index: 1;
+}
+
+.glow-effect-dark::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: radial-gradient(circle, rgba(214, 51, 83, 0.4), transparent); /* From --gradient-glow dark */
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.glow-effect-dark:hover::before {
+  opacity: 1;
+}
+
+/* Text Gradient - Light Theme */
+.text-gradient-light {
+  background: linear-gradient(135deg, #B91C40, #9C0A2E); /* From --gradient-primary light */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent; /* Fallback */
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Text Gradient - Dark Theme */
+.text-gradient-dark {
+  background: linear-gradient(135deg, #D63353, #B91C40); /* From --gradient-primary dark */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent; /* Fallback */
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Scrollbar styling for sticky right column */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Image Grid Artistic Layout */
+.image-grid-artistic {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+  position: relative;
+}
+
+.image-artistic-1 { grid-column: 1 / 6; grid-row: 1 / 3; transform: rotate(-2deg); z-index: 3; }
+.image-artistic-2 { grid-column: 5 / 9; grid-row: 2 / 4; transform: rotate(1.5deg); z-index: 2; }
+.image-artistic-3 { grid-column: 8 / 13; grid-row: 1 / 3; transform: rotate(-1deg); z-index: 4; }
+.image-artistic-4 { grid-column: 2 / 7; grid-row: 3 / 5; transform: rotate(2deg); z-index: 1; }
+.image-artistic-5 { grid-column: 7 / 12; grid-row: 3 / 5; transform: rotate(-0.5deg); z-index: 2; }
+
+/* Responsive adjustments for image grid */
+@media (max-width: 1024px) {
   .image-grid-artistic {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: 1rem;
-    position: relative;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto;
   }
-  
-  .image-artistic-1 { grid-column: 1 / 6; grid-row: 1 / 3; transform: rotate(-2deg); z-index: 3; }
-  .image-artistic-2 { grid-column: 5 / 9; grid-row: 2 / 4; transform: rotate(1.5deg); z-index: 2; }
-  .image-artistic-3 { grid-column: 8 / 13; grid-row: 1 / 3; transform: rotate(-1deg); z-index: 4; }
-  .image-artistic-4 { grid-column: 2 / 7; grid-row: 3 / 5; transform: rotate(2deg); z-index: 1; }
-  .image-artistic-5 { grid-column: 7 / 12; grid-row: 3 / 5; transform: rotate(-0.5deg); z-index: 2; }
-  
-  /* Responsive adjustments for image grid */
-  @media (max-width: 1024px) {
-    .image-grid-artistic {
-      grid-template-columns: repeat(2, 1fr);
-      grid-template-rows: auto;
-    }
-    .image-artistic-1 { grid-area: 1 / 1 / auto / 2; transform: rotate(0deg); }
-    .image-artistic-2 { grid-area: 1 / 2 / auto / 3; transform: rotate(0deg); }
-    .image-artistic-3 { grid-area: 2 / 1 / auto / 2; transform: rotate(0deg); }
-    .image-artistic-4 { grid-area: 2 / 2 / auto / 3; transform: rotate(0deg); }
-    .image-artistic-5 { grid-area: 3 / 1 / auto / 2; transform: rotate(0deg); }
-  }
-  
-  @media (max-width: 768px) {
-    .image-grid-artistic {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto;
-    }
-    .image-artistic-1, .image-artistic-2, .image-artistic-3, .image-artistic-4, .image-artistic-5 {
-      grid-area: auto;
-      transform: rotate(0deg) !important;
-    }
-  }
-  
-  /* --- Animations --- */
-  /* Define the keyframes here, then apply via `animation` property in classes */
-  @keyframes accordion-down {
-    from { height: '0'; }
-    to { height: 'var(--radix-accordion-content-height)'; }
-  }
-  
-  @keyframes accordion-up {
-    from { height: 'var(--radix-accordion-content-height)'; }
-    to { height: '0'; }
-  }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(var(--rotate, 0deg)); }
-    50% { transform: translateY(-10px) rotate(var(--rotate, 0deg)); }
-  }
-  
-  @keyframes float-delayed {
-    0%, 100% { transform: translateY(0px) rotate(2deg); }
-    50% { transform: translateY(-15px) rotate(2deg); }
-  }
-  
-  @keyframes rotate-slow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px hsl(var(--primary), 0.3); }
-    50% { box-shadow: 0 0 40px hsl(var(--primary), 0.6); }
-  }
-  
-  @keyframes gradient-shift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-  
-  @keyframes fade-up {
-    from { opacity: 0; transform: translateY(40px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  /* Animation utility classes */
-  .animate-accordion-down { animation: accordion-down 0.2s ease-out; }
-  .animate-accordion-up { animation: accordion-up 0.2s ease-out; }
-  .animate-float { animation: float 6s ease-in-out infinite; }
-  .animate-float-delayed { animation: float-delayed 8s ease-in-out infinite; }
-  .animate-rotate-slow { animation: rotate-slow 20s linear infinite; }
-  .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-  .animate-gradient-shift { animation: gradient-shift 4s ease infinite; }
-  .animate-fade-up { animation: fade-up 0.8s ease-out; }
-  
-  /* --- Specific Styles for Typography (Prose) --- */
-  /* These styles mimic the @tailwindcss/typography plugin behavior for basic markdown content. */
-  .prose {
-    font-family: var(--font-sans);
-    line-height: 1.75;
-    font-size: 1.125rem;
-    max-width: 100%;
-    color: hsl(var(--foreground));
-  }
-  
-  .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
-    color: hsl(var(--foreground));
-    font-weight: 700;
-    margin-top: 1.5em;
-    margin-bottom: 0.75em;
-    line-height: 1.2;
-  }
-  
-  .prose h1 { font-size: 2.5em; }
-  .prose h2 { font-size: 2em; }
-  .prose h3 { font-size: 1.75em; }
-  .prose h4 { font-size: 1.5em; }
-  
-  .prose p {
-    margin-top: 1em;
-    margin-bottom: 1em;
-    color: hsl(var(--foreground));
-  }
-  
-  .prose strong {
-    font-weight: 700;
-    color: hsl(var(--foreground));
-  }
-  
-  .prose a {
-    color: hsl(var(--primary));
-    text-decoration: none;
-    font-weight: 500;
-  }
-  
-  .prose a:hover {
-    text-decoration: underline;
-    color: hsl(var(--primary-glow));
-  }
-  
-  .prose ol, .prose ul {
-    margin-top: 1em;
-    margin-bottom: 1em;
-    padding-left: 1.5em;
-  }
-  
-  .prose li {
-    margin-bottom: 0.5em;
-  }
-  
-  .prose blockquote {
-    border-left: 0.25rem solid hsl(var(--primary));
-    padding-left: 1rem;
-    margin-left: 0;
-    margin-right: 0;
-    font-style: italic;
-    color: hsl(var(--muted-foreground));
-  }
-  
-  .prose code {
-    font-family: monospace;
-    background-color: hsl(var(--muted));
-    padding: 0.2em 0.4em;
-    border-radius: 0.3em;
-    font-size: 0.875em;
-    color: hsl(var(--foreground));
-  }
-  
-  .prose pre {
-    background-color: hsl(var(--card));
-    border-radius: var(--radius);
-    padding: 1em;
-    overflow-x: auto;
-    font-size: 0.9em;
-    line-height: 1.4;
-    color: hsl(var(--card-foreground));
-  }
-  
-  /* Dark mode specific prose styles */
-  .dark .prose {
-    color: hsl(var(--foreground));
-  }
-  
-  .dark .prose h1, .dark .prose h2, .dark .prose h3, .dark .prose h4, .dark .prose h5, .dark .prose h6 {
-    color: hsl(var(--foreground));
-  }
-  
-  .dark .prose p {
-    color: hsl(var(--foreground));
-  }
-  
-  .dark .prose strong {
-    color: hsl(var(--foreground));
-  }
-  
-  .dark .prose a {
-    color: hsl(var(--primary-glow));
-  }
-  
-  .dark .prose code {
-    background-color: hsl(var(--secondary));
-    color: hsl(var(--foreground));
-  }
-  
-  .dark .prose pre {
-    background-color: hsl(var(--card));
-    color: hsl(var(--card-foreground));
-  }
-  
-  .dark .prose blockquote {
-    border-left-color: hsl(var(--primary-glow));
-    color: hsl(var(--muted-foreground));
-  }
+  .image-artistic-1 { grid-area: 1 / 1 / auto / 2; transform: rotate(0deg); }
+  .image-artistic-2 { grid-area: 1 / 2 / auto / 3; transform: rotate(0deg); }
+  .image-artistic-3 { grid-area: 2 / 1 / auto / 2; transform: rotate(0deg); }
+  .image-artistic-4 { grid-area: 2 / 2 / auto / 3; transform: rotate(0deg); }
+  .image-artistic-5 { grid-area: 3 / 1 / auto / 2; transform: rotate(0deg); }
+}
 
-  .hover-float {
-    transition: var(--transition-smooth);
-  }
 
-  .hover-float:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-float);
+@media (max-width: 768px) {
+  .image-grid-artistic {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
   }
-
-  .glow-effect {
-    position: relative;
+  .image-artistic-1, .image-artistic-2, .image-artistic-3, .image-artistic-4, .image-artistic-5 {
+    grid-area: auto;
+    transform: rotate(0deg) !important;
   }
+}
 
-  .glow-effect::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    background: var(--gradient-glow);
-    border-radius: inherit;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: -1;
-  }
+/* --- Animations --- */
+/* Define the keyframes here, then apply via `animation` property in classes */
+@keyframes accordion-down {
+  from { height: '0'; }
+  to { height: 'var(--radix-accordion-content-height)'; } /* This variable is external, cannot be replaced */
+}
 
-  .glow-effect:hover::before {
-    opacity: 1;
-  }
+@keyframes accordion-up {
+  from { height: 'var(--radix-accordion-content-height)'; } /* This variable is external, cannot be replaced */
+  to { height: '0'; }
+}
 
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(var(--rotate, 0deg)); } /* --rotate is an external variable, cannot be replaced */
+  50% { transform: translateY(-10px) rotate(var(--rotate, 0deg)); }
+}
+
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0px) rotate(2deg); }
+  50% { transform: translateY(-15px) rotate(2deg); }
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Pulse Glow Animation - Light Theme */
+@keyframes pulse-glow-light {
+  0%, 100% { box-shadow: 0 0 20px rgba(185, 28, 64, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(185, 28, 64, 0.6); }
+}
+
+/* Pulse Glow Animation - Dark Theme */
+@keyframes pulse-glow-dark {
+  0%, 100% { box-shadow: 0 0 20px rgba(214, 51, 83, 0.4); }
+  50% { box-shadow: 0 0 40px rgba(214, 51, 83, 0.8); }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animation utility classes */
+.animate-accordion-down { animation: accordion-down 0.2s ease-out; }
+.animate-accordion-up { animation: accordion-up 0.2s ease-out; }
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-float-delayed { animation: float-delayed 8s ease-in-out infinite; }
+.animate-rotate-slow { animation: rotate-slow 20s linear infinite; }
+
+/* Animation utility classes for pulse glow (theme-specific) */
+.animate-pulse-glow-light { animation: pulse-glow-light 2s ease-in-out infinite; }
+.animate-pulse-glow-dark { animation: pulse-glow-dark 2s ease-in-out infinite; }
+
+.animate-gradient-shift { animation: gradient-shift 4s ease infinite; }
+.animate-fade-up { animation: fade-up 0.8s ease-out; }
+
+/* --- Specific Styles for Typography (Prose) --- */
+/* These styles mimic the @tailwindcss/typography plugin behavior for basic markdown content. */
+/* Prose - Light Theme */
+.prose-light {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  line-height: 1.75;
+  font-size: 1.125rem;
+  max-width: 100%;
+  color: #000000; /* --foreground */
+}
+
+.prose-light h1, .prose-light h2, .prose-light h3, .prose-light h4, .prose-light h5, .prose-light h6 {
+  color: #000000; /* --foreground */
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.75em;
+  line-height: 1.2;
+}
+
+.prose-light h1 { font-size: 2.5em; }
+.prose-light h2 { font-size: 2em; }
+.prose-light h3 { font-size: 1.75em; }
+.prose-light h4 { font-size: 1.5em; }
+
+.prose-light p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  color: #000000; /* --foreground */
+}
+
+.prose-light strong {
+  font-weight: 700;
+  color: #000000; /* --foreground */
+}
+
+.prose-light a {
+  color: #B91C40; /* --primary */
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.prose-light a:hover {
+  text-decoration: underline;
+  color: #D63353; /* --primary-glow */
+}
+
+.prose-light ol, .prose-light ul {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+}
+
+.prose-light li {
+  margin-bottom: 0.5em;
+}
+
+.prose-light blockquote {
+  border-left: 0.25rem solid #B91C40; /* --primary */
+  padding-left: 1rem;
+  margin-left: 0;
+  margin-right: 0;
+  font-style: italic;
+  color: #737373; /* --muted-foreground */
+}
+
+.prose-light code {
+  font-family: monospace;
+  background-color: #F5F5F5; /* --muted */
+  padding: 0.2em 0.4em;
+  border-radius: 0.3em;
+  font-size: 0.875em;
+  color: #000000; /* --foreground */
+}
+
+.prose-light pre {
+  background-color: #FFFFFF; /* --card */
+  border-radius: 1rem; /* --radius */
+  padding: 1em;
+  overflow-x: auto;
+  font-size: 0.9em;
+  line-height: 1.4;
+  color: #000000; /* --card-foreground */
+}
+
+/* Prose - Dark Theme */
+.prose-dark {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  line-height: 1.75;
+  font-size: 1.125rem;
+  max-width: 100%;
+  color: #F2F2F2; /* --foreground */
+}
+
+.prose-dark h1, .prose-dark h2, .prose-dark h3, .prose-dark h4, .prose-dark h5, .prose-dark h6 {
+  color: #F2F2F2; /* --foreground */
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.75em;
+  line-height: 1.2;
+}
+
+.prose-dark p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  color: #F2F2F2; /* --foreground */
+}
+
+.prose-dark strong {
+  font-weight: 700;
+  color: #F2F2F2; /* --foreground */
+}
+
+.prose-dark a {
+  color: #F04F6F; /* --primary-glow */
+}
+
+.prose-dark code {
+  background-color: #262626; /* --secondary */
+  color: #F2F2F2; /* --foreground */
+}
+
+.prose-dark pre {
+  background-color: #1A1A1A; /* --card */
+  color: #F2F2F2; /* --card-foreground */
+}
+
+.prose-dark blockquote {
+  border-left-color: #F04F6F; /* --primary-glow */
+  color: #999999; /* --muted-foreground */
+}
+
+/* Sidebar specific styles - Light Theme */
+.sidebar-light {
+background-color: #FAFAFA; /* --sidebar-background */
+color: #3F4349; /* --sidebar-foreground */
+border-color: #E1E6EB; /* --sidebar-border */
+}
+
+.sidebar-light .sidebar-primary-text {
+color: #18191C; /* --sidebar-primary */
+}
+
+.sidebar-light .sidebar-primary-background {
+background-color: #18191C; /* --sidebar-primary */
+color: #FAFAFA; /* --sidebar-primary-foreground */
+}
+
+.sidebar-light .sidebar-accent-background {
+background-color: #F0F1F2; /* --sidebar-accent */
+color: #18191C; /* --sidebar-accent-foreground */
+}
+
+.sidebar-light .sidebar-ring-color {
+color: #2196F3; /* --sidebar-ring */
+}
+
+/* Sidebar specific styles - Dark Theme */
+.sidebar-dark {
+background-color: #18191C; /* --sidebar-background */
+color: #F0F1F2; /* --sidebar-foreground */
+border-color: #28292D; /* --sidebar-border */
+}
+
+.sidebar-dark .sidebar-primary-text {
+color: #1C6EE6; /* --sidebar-primary */
+}
+
+.sidebar-dark .sidebar-primary-background {
+background-color: #1C6EE6; /* --sidebar-primary */
+color: #FFFFFF; /* --sidebar-primary-foreground */
+}
+
+.sidebar-dark .sidebar-accent-background {
+background-color: #28292D; /* --sidebar-accent */
+color: #F0F1F2; /* --sidebar-accent-foreground */
+}
+
+.sidebar-dark .sidebar-ring-color {
+color: #2196F3; /* --sidebar-ring */
+}
+
+/* Icon Colors */
+.icon-primary-light {
+color: #B91C40; /* Light theme --primary */
+}
+
+.icon-primary-glow-light {
+color: #D63353; /* Light theme --primary-glow */
+}
+
+.icon-primary-dark {
+color: #D63353; /* Dark theme --primary */
+}
+
+.icon-primary-glow-dark {
+color: #F04F6F; /* Dark theme --primary-glow */
+}
+
+/* Text Colors */
+.text-foreground-light { color: #000000; }
+.text-foreground-dark { color: #F2F2F2; }
+
+.text-muted-foreground-light { color: #737373; }
+.text-muted-foreground-dark { color: #999999; }
+
+/* Border Colors */
+.border-primary-light { border-color: #B91C40; }
+.border-primary-dark { border-color: #D63353; }
+
+.border-cta-light { border: 1px solid #D1D5DB; } /* Example: Tailwind gray-300 */
+.border-cta-dark { border: 1px solid #4B5563; } /* Example: Tailwind gray-700 */
+
+/* Image Overlay */
+.image-overlay-light { background: linear-gradient(to top, rgba(255, 255, 255, 0.5), transparent); }
+.image-overlay-dark { background: linear-gradient(to top, rgba(13, 13, 13, 0.5), transparent); }
+
+/* Liked Heart Icon */
+.liked-heart { color: #EF4444; fill: currentColor; } /* A common red for liked state */
+
+/* Placeholder Image Background and Text */
+.bg-placeholder-light { background-color: #E5E7EB; } /* gray-200 */
+.text-placeholder-light { color: #6B7280; } /* gray-500 */
+.bg-placeholder-dark { background-color: #374151; } /* gray-700 */
+.text-placeholder-dark { color: #9CA3AF; } /* gray-400 */
+
+/* --- Glassmorphism Styles for Dark Theme --- */
+/* --- Glassmorphism Styles for Dark Theme --- */
+.glass-base-dark {
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+}
+
+.glass-base-light {
+  backdrop-filter: blur(10px) saturate(150%);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+}
+
+/* Optional: If you want border as a simple utility */
+.border-red-dark {
+  border: 1px solid rgba(214, 51, 83, 0.2);
+}
+.border-red-light {
+  border: 1px solid rgba(185, 28, 64, 0.3);
+}
+
+.glass-float-light-i {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)); /* From --gradient-glass light */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* From --glass-border light */
   
-  
+  border-radius: 1rem; /* From --radius */
+
+  cursor: pointer;
+  transform: translateZ(0);
+  /* Add transition for smooth scaling and filter */
+  transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+  /* Hint to the browser for performance on transform and filter changes */
+  will-change: transform, filter;
+}
+
+/* Glassmorphism Float - Dark Theme */
+.glass-float-dark-i {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1)); /* From --gradient-glass dark */
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(10px); /* For Safari compatibility */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* From --glass-border dark */
+ 
+  border-radius: 1rem; /* Corrected typo: 1rem4 -> 1rem */
+
+  transform: translateZ(0);
+  cursor: pointer;
+  /* Add transition for smooth scaling and filter */
+  transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+  /* Hint to the browser for performance on transform and filter changes */
+  will-change: transform, filter;
+}
+
+@media (min-width: 1024px) { /* Adjust breakpoint as needed for "desktop" */
+  .glass-float-light-i:hover,
+  .glass-float-dark-i:hover {
+    transform: scale(2); /* Scales the element to 200% of its original size */
+    filter: brightness(1.1) saturate(1.1); /* Slightly brighten and saturate on hover */
+  }
+}
+

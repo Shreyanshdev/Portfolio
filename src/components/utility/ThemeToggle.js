@@ -3,6 +3,7 @@ import {motion} from "framer-motion"
 import React from 'react'
 import { useTheme } from '@/context/ThemeContext'
 import { Sun, Moon } from 'lucide-react'
+import './../../app/blog/blog.css'
 
 export default function ThemeToggle() {
   const { isDark, setTheme } = useTheme()
@@ -10,7 +11,7 @@ export default function ThemeToggle() {
   return (
     <motion.button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="glass-float p-3 rounded-full hover-float glow-effect group"
+      className={`${isDark ? 'glass-float-dark' : 'glass-float-light'} scrollbar-hide p-3 rounded-full hover-float ${isDark ? 'dark-theme' : 'light-theme'} ${isDark ? 'glow-effect-dark' : 'glow-effect-light'} group`}
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
     >

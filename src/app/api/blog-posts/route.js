@@ -1,101 +1,103 @@
 // app/api/blog-posts/route.js (for Next.js App Router)
 
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import dbConnect from '@/lib/mongodb'; // Import the database connection utility
+import BlogPost from '@/models/BlogPost'; // Import your Mongoose model
 
-// Define the path to your mockBlogPosts.js file
-const postsFilePath = path.join(process.cwd(), 'src', 'constants', 'mockBlogPosts.js');
-// Function to read and parse the current blog posts
-async function getBlogPosts() {
+// Handle GET requests to fetch all blog posts
+export async function GET() {
   try {
-    const fileContent = await fs.promises.readFile(postsFilePath, 'utf-8');
-    // Extract the array part from the file content
-    // This regex looks for `export const mockBlogPosts = [` and captures everything until the closing `];`
-    const match = fileContent.match(/export const mockBlogPosts = (\[[\s\S]*?\]);/);
-    if (match && match[1]) {
-      // Use a safe way to parse the array string, avoiding eval()
-      // This is a simplified parser; for complex objects, consider JSON.stringify/parse
-      const postsArrayString = match[1];
-      // Replace single quotes with double quotes for JSON.parse
-      const jsonString = postsArrayString.replace(/'/g, '"');
-      // Replace unquoted keys with quoted keys (basic attempt)
-      const cleanedJsonString = jsonString.replace(/(\w+):/g, '"$1":');
-      // Clean up trailing commas if any (common in JS arrays)
-      const finalJsonString = cleanedJsonString.replace(/,(\s*[}\]])/g, '$1');
+    await dbConnect(); // Connect to the database
 
-      return JSON.parse(finalJsonString);
-    }
-    return [];
+    // Fetch all blog posts, sorted by createdAt in descending order (latest first)
+    const posts = await BlogPost.find({}).sort({ createdAt: -1 });
+
+    return NextResponse.json(posts, { status: 200 });
   } catch (error) {
-    console.error("Error reading or parsing mockBlogPosts.js:", error);
-    return []; // Return empty array if file doesn't exist or is invalid
+    console.error("API GET Error (MongoDB):", error);
+    return NextResponse.json(
+      { message: 'Failed to retrieve blog posts.', error: error.message },
+      { status: 500 }
+    );
   }
 }
 
-// Function to write updated blog posts back to the file
-async function writeBlogPosts(posts) {
-  // Convert the array back to a string that matches your mockBlogPosts.js format
-  // Ensure content array is properly stringified for JS file
-  const formattedPosts = posts.map(post => {
-    const contentString = JSON.stringify(post.content, null, 2)
-      .replace(/"type":/g, 'type:') // Remove quotes from 'type' key
-      .replace(/"text":/g, 'text:') // Remove quotes from 'text' key
-      .replace(/"level":/g, 'level:'); // Remove quotes from 'level' key
-
-    // Re-add single quotes for string values if that's your preferred style in mockBlogPosts.js
-    // This is a simplified replacement; for robust formatting, consider a code formatter
-    const postString = JSON.stringify({ ...post, content: 'PLACEHOLDER_CONTENT' }, null, 2)
-      .replace(/"([^"]+)":/g, '$1:') // Remove quotes from keys
-      .replace(/"/g, "'"); // Replace double quotes with single quotes for string values
-
-    return postString.replace("'PLACEHOLDER_CONTENT'", contentString);
-  });
-
-  const fileContent = `// constants/mockBlogPosts.js
-// This file is updated by the /api/blog-posts route for local development persistence.
-
-export const mockBlogPosts = [
-${formattedPosts.join(',\n')}
-];
-`;
-
-  try {
-    await fs.promises.writeFile(postsFilePath, fileContent, 'utf-8');
-    console.log("mockBlogPosts.js updated successfully.");
-  } catch (error) {
-    console.error("Error writing to mockBlogPosts.js:", error);
-    throw error;
-  }
-}
-
-// Handle POST requests
+// Handle POST requests to create a new blog post
 export async function POST(request) {
   try {
-    const newPost = await request.json();
-    const currentPosts = await getBlogPosts();
+    await dbConnect(); // Connect to the database
+    const newPostData = await request.json(); // Get the new post data from the request body
 
-    // Add a unique ID to the new post if not already present (for React keys)
-    const postToAdd = { ...newPost, id: newPost.slug || Date.now().toString() };
+    // Generate slug from title, ensuring uniqueness
+    const baseSlug = newPostData.title
+      ? newPostData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      : 'untitled-post';
+    
+    let finalSlug = baseSlug;
+    let counter = 1;
+    // Check if slug already exists and append a counter if it does
+    while (await BlogPost.exists({ slug: finalSlug })) {
+      finalSlug = `${baseSlug}-${counter}`;
+      counter++;
+    }
 
-    // Add the new post to the beginning of the array
-    const updatedPosts = [postToAdd, ...currentPosts];
+    // Estimate read time (approx. 200 words per minute)
+    const totalWords = newPostData.content.reduce((acc, block) => {
+      return acc + (block.text ? block.text.split(' ').length : 0);
+    }, 0);
+    const readTime = `${Math.ceil(totalWords / 200)} min`;
 
-    await writeBlogPosts(updatedPosts);
+    // Create a new BlogPost document
+    const newPost = await BlogPost.create({
+      slug: finalSlug,
+      title: newPostData.title || 'Untitled Post',
+      excerpt: newPostData.excerpt || '',
+      date: newPostData.date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      readTime: readTime,
+      featuredImage: newPostData.featuredImage || '',
+      imageAlt: newPostData.imageAlt || '',
+      author: newPostData.author || 'Shreyansh Gupta',
+      tags: newPostData.tags || '',
+      content: newPostData.content || []
+    });
 
-    return NextResponse.json({ message: 'Blog post added successfully!', post: postToAdd }, { status: 201 });
+    return NextResponse.json({ message: 'Blog post added successfully!', post: newPost }, { status: 201 });
   } catch (error) {
-    console.error("API Error:", error);
+    console.error("API POST Error (MongoDB):", error);
+    // Handle Mongoose validation errors or duplicate key errors specifically
+    if (error.name === 'ValidationError') {
+      return NextResponse.json({ message: 'Validation Error', errors: error.errors }, { status: 400 });
+    }
+    if (error.code === 11000) { // MongoDB duplicate key error
+      return NextResponse.json({ message: 'Duplicate slug. Please use a different title.', error: error.message }, { status: 409 });
+    }
     return NextResponse.json({ message: 'Failed to add blog post.', error: error.message }, { status: 500 });
   }
 }
 
-// You might also want a GET handler if you want to fetch all posts via API
-export async function GET() {
+// Optional: Handle DELETE requests for a specific post by slug
+export async function DELETE(request) {
   try {
-    const posts = await getBlogPosts();
-    return NextResponse.json(posts);
+    await dbConnect();
+    const { searchParams } = new URL(request.url);
+    const slug = searchParams.get('slug');
+
+    if (!slug) {
+      return NextResponse.json({ message: 'Slug is required for deletion.' }, { status: 400 });
+    }
+
+    const deletedPost = await BlogPost.findOneAndDelete({ slug });
+
+    if (!deletedPost) {
+      return NextResponse.json({ message: 'Blog post not found.' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Blog post deleted successfully!', post: deletedPost }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ message: 'Failed to retrieve blog posts.' }, { status: 500 });
+    console.error("API DELETE Error (MongoDB):", error);
+    return NextResponse.json(
+      { message: 'Failed to delete blog post.', error: error.message },
+      { status: 500 }
+    );
   }
 }

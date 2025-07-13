@@ -1,22 +1,16 @@
-// src/app/blog/[slug]/page.js
 'use client'
 
-// --- REMOVE THIS LINE: We will fetch data dynamically ---
-// import mockBlogPosts from '@/constants/mockBlogPosts'
-
-import LogoReveal from '@/components/utility/LogoReveal' // Keep if used elsewhere, but likely not on a single post page
 import ThemeToggle from '@/components/utility/ThemeToggle'
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { notFound } from 'next/navigation'; // Import notFound for proper 404 handling
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowLeft, Clock, User, Share2, ChevronUp, BookOpen, Heart } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
-import './../blog.css' // Adjusted relative path assuming blog.css is in src/app/blog/
-
+import './../blog.css'
 
 // Register GSAP plugins
 if (typeof window !== 'undefined') {
@@ -29,39 +23,32 @@ const BlogPostPage = () => {
   const router = useRouter();
   const { isDark } = useTheme();
   const containerRef = useRef(null);
-  const progressRef = useRef(null);
-  const contentRef = useRef(null);
+  const progressRef = null; // Reading progress bar will use direct style
   const [readingProgress, setReadingProgress] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
-  // --- NEW STATE FOR POST DATA ---
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-
-  // --- NEW useEffect for data fetching ---
   useEffect(() => {
     const fetchPostData = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Fetch all posts from your API route
         const response = await fetch('/api/blog-posts');
         if (!response.ok) {
           throw new Error(`Failed to fetch posts: ${response.statusText}`);
         }
         const allPosts = await response.json();
 
-        // Find the specific post by slug
         const foundPost = allPosts.find(p => p.slug === slug);
 
         if (foundPost) {
           setPost(foundPost);
         } else {
-          // If post is not found after fetching, trigger Next.js 404
           notFound();
         }
       } catch (err) {
@@ -72,15 +59,13 @@ const BlogPostPage = () => {
       }
     };
 
-    if (slug) { // Only fetch if slug is available
+    if (slug) {
       fetchPostData();
     }
-  }, [slug]); // Re-run effect if slug changes (though it shouldn't on this page)
+  }, [slug]);
 
-
-  // --- Update GSAP and other effects to depend on 'post' being loaded ---
   useEffect(() => {
-    if (!post || typeof window === 'undefined' || !containerRef.current) return; // Ensure post is loaded and on client
+    if (!post || typeof window === 'undefined' || !containerRef.current) return;
 
     const ctx = gsap.context(() => {
       // Hero image parallax
@@ -103,12 +88,12 @@ const BlogPostPage = () => {
         stagger: 0.2,
         ease: 'power3.out',
         scrollTrigger: {
-          trigger: contentRef.current,
+          trigger: containerRef.current,
           start: 'top 80%'
         }
       });
 
-      // Animated decorative elements
+      // Animated decorative elements (using glass-float as a trigger for floating-element styles)
       gsap.from('.floating-element', {
         y: 100,
         opacity: 0,
@@ -123,29 +108,23 @@ const BlogPostPage = () => {
     }, containerRef);
 
     return () => ctx.revert();
-  }, [post]); // Add post to dependency array so animations run after data is loaded
+  }, [post]);
 
-
-  // Reading progress and scroll tracking
   useEffect(() => {
-    // Only set up scroll listener if post is loaded and contentRef is available
-    if (!post || !contentRef.current) return;
+    if (!post || !containerRef.current) return;
 
     const updateProgress = () => {
-      // Ensure element exists before trying to get its height
       if (!document.documentElement || !window) return;
 
       const scrollTop = window.scrollY;
-      // Use the actual scrollable height of the content, not just document height
-      // This makes the progress more accurate for the actual article content
-      const contentHeight = contentRef.current.scrollHeight;
+      const contentHeight = containerRef.current.scrollHeight;
       const viewportHeight = window.innerHeight;
       const scrollableContent = contentHeight - viewportHeight;
 
       let progress = 0;
       if (scrollableContent > 0) {
         progress = (scrollTop / scrollableContent) * 100;
-        progress = Math.min(100, Math.max(0, progress)); // Cap between 0 and 100
+        progress = Math.min(100, Math.max(0, progress));
       }
 
       setReadingProgress(progress);
@@ -154,18 +133,18 @@ const BlogPostPage = () => {
 
     window.addEventListener('scroll', updateProgress);
     return () => window.removeEventListener('scroll', updateProgress);
-  }, [post]); // Depend on post so this effect re-runs when post data is available
+  }, [post]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const sharePost = async () => {
-    if (!post) return; // Don't share if post isn't loaded
+    if (!post) return;
     if (navigator.share) {
       try {
         await navigator.share({
-          title: post.title, // Use post.title now
+          title: post.title,
           url: window.location.href
         });
       } catch (err) {
@@ -177,10 +156,9 @@ const BlogPostPage = () => {
     }
   };
 
-  // --- LOADING / ERROR / NOT FOUND STATES ---
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-background text-foreground text-2xl animate-pulse">
+      <div className={`flex justify-center items-center h-screen ${isDark ? 'dark-theme' : 'light-theme'} text-2xl animate-pulse`}>
         Loading Post...
       </div>
     );
@@ -188,24 +166,21 @@ const BlogPostPage = () => {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen bg-background text-destructive text-2xl">
+      <div className={`flex justify-center items-center h-screen ${isDark ? 'dark-theme' : 'light-theme'} text-red-500 text-2xl`}>
         Error loading post: {error.message}. Please try again.
       </div>
     );
   }
 
-  // If post is null here, it means notFound() was likely called or an unexpected state
-  // We already handle notFound() within useEffect, so this is a final safeguard.
   if (!post) {
-      return null;
+    return null;
   }
 
   return (
-    <div ref={containerRef} className={`min-h-screen ${isDark ? 'dark' : ''} bg-background transition-colors duration-500`}>
+    <div ref={containerRef} className={`min-h-screen ${isDark ? 'dark-theme' : 'light-theme'}`}>
       {/* Reading Progress Bar */}
       <motion.div
-        ref={progressRef}
-        className="fixed top-0 left-0 h-1 bg-[#e50914] z-50"
+        className="fixed top-0 left-0 h-1 bg-red-500 z-50"
         style={{ width: `${readingProgress}%` }}
         initial={{ width: 0 }}
         animate={{ width: `${readingProgress}%` }}
@@ -215,31 +190,31 @@ const BlogPostPage = () => {
       <header className="fixed top-4 left-4 right-4 z-40 flex justify-between items-center">
         <Link
           href="/blog"
-          className="glass-float p-3 rounded-full hover-float glow-effect group"
+          className={`${isDark ? 'glass-float-dark' : 'glass-float-light'} scrollbar-hide p-3 rounded-full hover-float ${isDark ? 'dark-theme' : 'light-theme'} ${isDark ? 'glow-effect-dark' : 'glow-effect-light'} group`}
         >
-          <ArrowLeft className="h-5 w-5 text-primary group-hover:text-primary-glow transition-colors" />
+          <ArrowLeft className={`h-5 w-5 ${isDark ? 'icon-primary-dark' : 'icon-primary-light'} group-hover:${isDark ? 'icon-primary-glow-dark' : 'icon-primary-glow-light'} transition-colors`} />
         </Link>
         <ThemeToggle />
       </header>
 
       {/* Floating Action Buttons */}
-      <div className="fixed right-6 bottom-6 z-40 space-y-3">
+      <div className="fixed right-6 bottom-6 z-40 space-y-3 ">
         <motion.button
           onClick={sharePost}
-          className="glass-float p-3 rounded-full hover-float glow-effect group"
+          className={`${isDark ? 'glass-float-dark' : 'glass-float-light'} scrollbar-hide p-3 rounded-full hover-float ${isDark ? 'dark-theme' : 'light-theme'} ${isDark ? 'glow-effect-dark' : 'glow-effect-light'} group`}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Share2 className="h-5 w-5 text-primary group-hover:text-primary-glow transition-colors" />
+          <Share2 className={`h-5 w-5 ${isDark ? 'icon-primary-dark' : 'icon-primary-light'}  group-hover:${isDark ? 'icon-primary-glow-dark' : 'icon-primary-glow-light'} transition-colors`} />
         </motion.button>
 
         <motion.button
           onClick={() => setIsLiked(!isLiked)}
-          className="glass-float p-3 rounded-full hover-float glow-effect group"
+          className={`${isDark ? 'glass-float-dark' : 'glass-float-light'} scrollbar-hide p-3 rounded-full hover-float ${isDark ? 'dark-theme' : 'light-theme'} ${isDark ? 'glow-effect-dark' : 'glow-effect-light'} group`}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Heart className={`h-5 w-5 transition-colors ${isLiked ? 'text-red-500 fill-current' : 'text-primary group-hover:text-primary-glow'}`} />
+          <Heart className={`h-5 w-5 transition-colors ${isLiked ? 'liked-heart' : `${isDark ? 'icon-primary-dark' : 'icon-primary-light'} group-hover:${isDark ? 'icon-primary-glow-dark' : 'icon-primary-glow-light'}`}`} />
         </motion.button>
 
         {showScrollTop && (
@@ -248,11 +223,11 @@ const BlogPostPage = () => {
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0 }}
-            className="glass-float p-3 rounded-full hover-float glow-effect group"
+            className={`${isDark ? 'glass-float-dark' : 'glass-float-light'} scrollbar-hide p-3 rounded-full hover-float ${isDark ? 'dark-theme' : 'light-theme'} ${isDark ? 'glow-effect-dark' : 'glow-effect-light'} group`}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
           >
-            <ChevronUp className="h-5 w-5 text-primary group-hover:text-primary-glow transition-colors" />
+            <ChevronUp className={`h-5 w-5 ${isDark ? 'icon-primary-dark' : 'icon-primary-light'} group-hover:${isDark ? 'icon-primary-glow-dark' : 'icon-primary-glow-light'} transition-colors`} />
           </motion.button>
         )}
       </div>
@@ -264,14 +239,14 @@ const BlogPostPage = () => {
           <svg className="w-full h-full" viewBox="0 0 1000 1000">
             <defs>
               <linearGradient id="heroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="hsl(var(--primary))" />
-                <stop offset="100%" stopColor="hsl(var(--primary-glow))" />
+                <stop offset="0%" stopColor={isDark ? 'hsl(var(--primary-glow-dark))' : 'hsl(var(--primary-glow-light))'} />
+                <stop offset="100%" stopColor={isDark ? 'hsl(var(--primary-dark))' : 'hsl(var(--primary-light))'} />
               </linearGradient>
             </defs>
             <g className="floating-element">
-              <circle cx="200" cy="200" r="3" fill="url(#heroGradient)" className="animate-pulse-glow" />
-              <circle cx="800" cy="300" r="2" fill="url(#heroGradient)" className="animate-pulse-glow" style={{ animationDelay: '1s' }} />
-              <circle cx="600" cy="700" r="4" fill="url(#heroGradient)" className="animate-pulse-glow" style={{ animationDelay: '2s' }} />
+              <circle cx="200" cy="200" r="3" fill="url(#heroGradient)" className={isDark ? 'animate-pulse-glow-dark' : 'animate-pulse-glow-light'} />
+              <circle cx="800" cy="300" r="2" fill="url(#heroGradient)" className={isDark ? 'animate-pulse-glow-dark' : 'animate-pulse-glow-light'} style={{ animationDelay: '1s' }} />
+              <circle cx="600" cy="700" r="4" fill="url(#heroGradient)" className={isDark ? 'animate-pulse-glow-dark' : 'animate-pulse-glow-light'} style={{ animationDelay: '2s' }} />
             </g>
             <g className="floating-element">
               <path d="M100,500 Q300,400 500,500 T900,500" stroke="url(#heroGradient)" strokeWidth="1" fill="none" opacity="0.3" />
@@ -292,17 +267,17 @@ const BlogPostPage = () => {
                 {post.tags.map(tag => (
                   <span
                     key={tag}
-                    className="glass-float px-3 py-1 text-xs font-medium rounded-full"
+                    className={`${isDark ? 'glass-float-dark' : 'glass-float-light'} px-3 py-1 text-xs font-medium rounded-full`}
                   >
                     {tag}
                   </span>
                 ))}
               </div>
             )}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-[#e50914] bg-clip-text text-[#e50914] leading-tight">
+            <h1 className={`text-4xl md:text-6xl lg:text-7xl font-bold mb-6 ${isDark ? 'text-gradient-dark' : 'text-gradient-light'} leading-tight`}>
               {post.title}
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className={`text-lg md:text-xl ${isDark ? 'text-muted-foreground-dark' : 'text-muted-foreground-light'} max-w-2xl mx-auto leading-relaxed`}>
               {post.excerpt}
             </p>
           </motion.div>
@@ -311,7 +286,7 @@ const BlogPostPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground"
+            className={`flex flex-wrap justify-center items-center gap-6 text-sm ${isDark ? 'text-muted-foreground-dark' : 'text-muted-foreground-light'}`}
           >
             <div className="flex items-center gap-2">
               <User className="h-4 w-4" />
@@ -339,37 +314,37 @@ const BlogPostPage = () => {
               className="w-full h-full object-cover scale-110"
             />
           ) : (
-            <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
+            <div className={`w-full h-full flex items-center justify-center text-sm ${isDark ? 'bg-placeholder-dark text-placeholder-dark' : 'bg-placeholder-light text-placeholder-light'}`}>
               No Featured Image
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
+          <div className={`${isDark ? 'image-overlay-dark' : 'image-overlay-light'} absolute inset-0`} />
         </div>
       </section>
 
       {/* Content */}
-      <section ref={contentRef} className="relative z-10 max-w-4xl mx-auto px-6 py-16">
-        <div className="prose prose-lg max-w-none dark:prose-invert">
+      <section className="relative z-10 max-w-4xl mx-auto px-6 py-16">
+        <div className={`${isDark ? 'prose-dark' : 'prose-light'} prose-lg max-w-none`}>
           {post.content?.map((block, index) => (
             <div key={index} className="content-block mb-8">
               {block.type === 'paragraph' && (
-                <p className="text-foreground leading-relaxed text-base">{block.text}</p>
+                <p className={`${isDark ? 'text-foreground-dark' : 'text-foreground-light'} leading-relaxed text-base`}>{block.text}</p>
               )}
               {block.type === 'heading' && (
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4 bg-[#e50914] bg-clip-text text-[#e50914]">
+                <h2 className={`text-2xl md:text-3xl font-bold mb-4 ${isDark ? 'text-gradient-dark' : 'text-gradient-light'}`}>
                   {block.text}
                 </h2>
               )}
               {block.type === 'code' && (
-                <div className="glass-float p-6 rounded-xl overflow-x-auto">
-                  <pre className="text-sm">
-                    <code className="text-foreground">{block.text}</code>
+                <div className={`${isDark ? 'glass-card-dark' : 'glass-card-light'} p-6 rounded-xl overflow-x-auto`}>
+                  <pre className={`text-sm ${isDark ? 'text-foreground-dark' : 'text-foreground-light'}`}>
+                    <code className={`${isDark ? 'text-foreground-dark' : 'text-foreground-light'}`}>{block.text}</code>
                   </pre>
                 </div>
               )}
               {block.type === 'quote' && (
-                <blockquote className="glass-float p-6 rounded-xl border-l-4 border-primary">
-                  <p className="text-lg italic text-foreground ">{block.text}</p>
+                <blockquote className={`${isDark ? 'glass-card-dark' : 'glass-card-light'} p-6 rounded-xl ${isDark ? 'border-primary-dark' : 'border-primary-light'} border-l-4`}>
+                  <p className={`text-lg italic ${isDark ? 'text-muted-foreground-dark' : 'text-muted-foreground-light'}`}>{block.text}</p>
                 </blockquote>
               )}
             </div>
@@ -384,16 +359,16 @@ const BlogPostPage = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <div className="glass-float p-8 rounded-2xl">
-            <h3 className="text-2xl font-bold mb-4 bg-[#e50914] bg-clip-text text-[#e50914]">
+          <div className={`${isDark ? 'glass-card-dark' : 'glass-card-light'} p-8 rounded-2xl`}>
+            <h3 className={`text-2xl font-bold mb-4 ${isDark ? 'text-gradient-dark' : 'text-gradient-light'}`}>
               Enjoyed this article?
             </h3>
-            <p className="text-muted-foreground mb-6">
+            <p className={`${isDark ? 'text-muted-foreground-dark' : 'text-muted-foreground-light'} mb-6`}>
               Connect with me for more insights and discussions about development, design, and technology.
             </p>
             <Link
               href="/blog"
-              className="inline-flex items-center gap-2 border-gray-300 px-6 py-3 rounded-full font-medium hover-float transition-all"
+              className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium hover-float ${isDark ? 'dark-theme' : 'light-theme'} transition-all ${isDark ? 'border-cta-dark text-foreground-dark' : 'border-cta-light text-foreground-light'}`}
             >
               Read More Articles
               <ArrowLeft className="h-4 w-4 rotate-180" />

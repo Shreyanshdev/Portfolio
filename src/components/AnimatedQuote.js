@@ -123,6 +123,24 @@ export default function AnimatedQuote() {
           NEVER NEGATIVE”
         </text>
       </svg>
+      <div
+                          className={`
+                            rounded-xl p-4
+                            transition-all duration-300
+
+                            hover:-translate-y-4
+                            ${isDark ? 'glass-base-dark' : 'glass-base-light'}
+
+                            // Dynamic background-color
+                            ${isDark ? 'bg-[rgba(10,10,10,0.15)]' : 'bg-[rgba(245,245,245,0.4)]'}
+
+                            ${isDark ? 'border-red-dark' : 'border-red-light'}
+
+                            // Hover shadow
+                            hover:shadow-[0_8px_32px_0_rgba(214,51,83,0.37)]
+                            ${isDark ? '' : 'hover:shadow-[0_8px_32px_0_rgba(185,28,64,0.25)]'} 
+                          `}
+                        ></div>
     </blockquote>
   )
 }

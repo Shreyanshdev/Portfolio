@@ -146,6 +146,14 @@ body {
   }
 }
 
+.mres {
+  display: none; /* Hide by default for all screen sizes (including mobile) */
+}
 
-
+@media (min-width: 768px) {
+  /* Show only on screens 768px and wider (typically tablets and desktops) */
+  .mres {
+    display: flex; /* Change to 'flex' to make it visible on larger screens */
+  }
+}
 
