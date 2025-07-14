@@ -100,12 +100,7 @@ export default function ProjectsSection() {
   return (
     <section
       id="projects"
-      className="relative z-10 py-28 px-4 sm:px-6 lg:px-8 overflow-hidden"
-      style={{
-        background: isDark
-          ? 'radial-gradient(ellipse at top, #0f0f15, #000)'
-          : 'radial-gradient(ellipse at top, #f9f9ff, #fff)',
-      }}
+      className='relative min-h-screen py-24 px-6 sm:px-8 flex flex-col justify-center items-center overflow-hidden transition-colors duration-500'
       ref={sectionRef} // Attach section ref
     >
 

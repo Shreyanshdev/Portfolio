@@ -1,15 +1,10 @@
-// src/components/ConnectSection.js
 'use client';
 
-import { useRef, useState, useEffect, useLayoutEffect } from 'react'; // Added useLayoutEffect
+import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import axios from 'axios';
 import { useTheme } from '@/context/ThemeContext';
 import { Twitter, Instagram, Linkedin, Github, Mail } from 'lucide-react';
-
-gsap.registerPlugin(ScrollTrigger);
 
 // Define social links with Lucide-React icons
 const socialLinks = [
@@ -20,15 +15,36 @@ const socialLinks = [
   { href: 'mailto:shreyanshg43@gmail.com', label: 'Email', icon: Mail },
 ];
 
-// Helper function for random values for floating elements (if you re-add them)
+// Helper function for random values for floating elements
 const getRandom = (min, max) => Math.random() * (max - min) + min;
+
+// Framer Motion Variants for cleaner animation definitions
+const sectionTitleVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+};
+
+const socialIconVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.8 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 200, damping: 12 } },
+};
+
+const formFieldVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+
+const newsletterFormVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
+};
 
 export default function ConnectSection() {
   const { isDark } = useTheme();
-  const connectRef = useRef(null);
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
-  const [subscriptionError, setSubscriptionError] = useState(''); // NEW state for newsletter errors
+  const [subscriptionError, setSubscriptionError] = useState('');
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -39,11 +55,9 @@ export default function ConnectSection() {
   });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
-  const [formError, setFormError] = useState(''); // NEW state for contact form errors
-  const socialRefs = useRef([]);
-  const formRef = useRef(null);
+  const [formError, setFormError] = useState('');
 
-  // Floating background elements state (re-added based on your original code structure)
+  // Floating background elements state
   const [floatingElements, setFloatingElements] = useState([]);
 
   useEffect(() => {
@@ -63,84 +77,18 @@ export default function ConnectSection() {
     }
   }, [floatingElements.length]); // Dependency to ensure it runs only if the array is empty initially
 
-  // GSAP animations (using useLayoutEffect for safety with DOM mutations)
-  useLayoutEffect(() => {
-    // Kill all ScrollTriggers when the component re-renders (e.g., theme change)
-    // to prevent duplicate animations
-    ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    if (!connectRef.current) return;
 
-    const ctx = gsap.context(() => {
-      // Section title animation
-      gsap.from(connectRef.current.querySelector('h2'), {
-        opacity: 0,
-        y: 40,
-        duration: 1,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: connectRef.current,
-          start: 'top 80%',
-        },
-      });
-
-      // Social icons animation
-      gsap.from(socialRefs.current, {
-        opacity: 0,
-        y: 20,
-        stagger: 0.1,
-        duration: 0.6,
-        delay: 0.3,
-        ease: 'back.out(1.7)',
-        scrollTrigger: {
-          trigger: socialRefs.current[0],
-          start: 'top 90%',
-        },
-      });
-
-      // Contact Form fields animation on scroll
-      if (formRef.current) {
-        gsap.from(Array.from(formRef.current.children).filter(el => el.tagName !== 'BUTTON'), {
-          opacity: 0,
-          y: 20,
-          stagger: 0.1,
-          duration: 0.6,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: formRef.current,
-            start: 'top 75%',
-          },
-        });
-
-        // Animate the submit button separately
-        gsap.from(formRef.current.querySelector('button[type="submit"]'), {
-          opacity: 0,
-          y: 20,
-          duration: 0.8,
-          delay: 0.5,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: formRef.current,
-            start: 'top 70%',
-          },
-        });
-      }
-    }, connectRef);
-
-    return () => ctx.revert();
-  }, [isDark]); // Re-run GSAP animations if theme changes
-
-
-  // --- Newsletter Handler (Now connected to /api/newsletter) ---
+  // --- Newsletter Handler ---
   const handleNewsletter = async (e) => {
     e.preventDefault();
-    setSubscriptionError(''); // Clear previous errors
-    setSubscribed(false); // Reset subscribed status
+    setSubscriptionError('');
+    setSubscribed(false);
     try {
       const response = await axios.post('/api/newsletter', { email });
       if (response.status === 200) {
         setSubscribed(true);
-        setEmail(''); // Clear email input
-        setTimeout(() => setSubscribed(false), 5000); // Hide success message after 5 seconds
+        setEmail('');
+        setTimeout(() => setSubscribed(false), 5000);
       }
     } catch (err) {
       console.error('Newsletter subscription error:', err);
@@ -148,33 +96,28 @@ export default function ConnectSection() {
     }
   };
 
-  // --- Contact Form Handler (Now connected to /api/contact) ---
+  // --- Contact Form Handler ---
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
-    setSent(false); // Reset sent status for new submission attempt
-    setFormError(''); // Clear previous errors
+    setSent(false);
+    setFormError('');
 
     try {
-      // Axios POST request to your Next.js API route
       const response = await axios.post('/api/contact', form);
 
       if (response.status === 200) {
         setSent(true);
-        // Clear the form only on success
         setForm({ name: '', email: '', contact: '', service: '', message: '', budget: '' });
-        setTimeout(() => setSent(false), 5000); // Hide success message after 5 seconds
+        setTimeout(() => setSent(false), 5000);
       } else {
-        // This block might not be hit if axios throws for non-2xx statuses,
-        // but it's good for explicit checks if your API returns custom non-error codes.
         setFormError(response.data.message || 'Could not send message.');
       }
     } catch (err) {
       console.error('Contact form submission error:', err);
-      // Access error message from axios response if available
       setFormError(err.response?.data?.message || 'Could not send message! Please try again.');
     } finally {
-      setSending(false); // Always stop sending state
+      setSending(false);
     }
   };
 
@@ -188,14 +131,9 @@ export default function ConnectSection() {
 
   return (
     <section
-      ref={connectRef}
       id="connect"
       className="min-h-screen py-24 px-4 sm:px-6 relative overflow-hidden"
-      style={{
-        background: isDark
-          ? 'radial-gradient(ellipse at top, #0f0f15, #000)'
-          : 'radial-gradient(ellipse at top, #f9f9ff, #fff)',
-      }}
+      
     >
       {/* Floating background elements */}
       {floatingElements.map(el => (
@@ -215,29 +153,39 @@ export default function ConnectSection() {
       ))}
 
       <div className="max-w-7xl mx-auto relative z-10">
-        <h2
+        <motion.h2
           className={`text-4xl md:text-5xl font-bold text-center mb-16 tracking-tighter ${
             isDark ? 'text-white' : 'text-gray-900'
           }`}
+          variants={sectionTitleVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
         >
           Let's{' '}
           <span className="bg-gradient-to-r from-red-500 via-red-600 to-red-400 bg-clip-text text-transparent">
             Connect
           </span>
-        </h2>
+        </motion.h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Left Column - Social & Newsletter */}
           <div className="flex flex-col items-center">
-            {/* Social Icons with animated hover */}
-            <div className="flex justify-center gap-6 mb-12 flex-wrap">
+            {/* Social Icons with animated hover and staggered entry */}
+            <motion.div
+              className="flex justify-center gap-6 mb-12 flex-wrap"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.6 }} // Trigger when 60% of the social icons container is in view
+              transition={{ staggerChildren: 0.1 }} // Stagger children for sequential animation
+            >
               {socialLinks.map(({ href, label, icon: Icon }, i) => (
-                <a
+                <motion.a
                   key={label}
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  ref={el => (socialRefs.current[i] = el)}
+                  variants={socialIconVariants} // Apply variants to each social icon
                 >
                   <motion.div
                     className="p-4 rounded-full flex items-center justify-center"
@@ -259,13 +207,13 @@ export default function ConnectSection() {
                         ? 'linear-gradient(135deg, rgba(229,9,20,0.2), rgba(255,59,59,0.15))'
                         : 'linear-gradient(135deg, rgba(229,9,20,0.1), rgba(255,59,59,0.08))',
                     }}
-                    transition={{ type: 'spring', stiffness: 300 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 15 }} // Enhanced spring for hover
                   >
                     <Icon className="w-8 h-8" style={{ color: isDark ? '#fff' : '#e50914' }} />
                   </motion.div>
-                </a>
+                </motion.a>
               ))}
-            </div>
+            </motion.div>
 
             {/* Newsletter */}
             <div className="w-full max-w-md">
@@ -283,9 +231,10 @@ export default function ConnectSection() {
                     key="form"
                     onSubmit={handleNewsletter}
                     className="mb-12"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
+                    variants={newsletterFormVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
                   >
                     <div className="relative">
                       <input
@@ -346,6 +295,8 @@ export default function ConnectSection() {
                     className="mb-12 text-center p-4 rounded-xl"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.3 }}
                     style={{
                       background: isDark
                         ? 'rgba(20, 100, 20, 0.1)'
@@ -409,7 +360,6 @@ export default function ConnectSection() {
           {/* Right Column - Contact Form */}
           <div className="contact-form">
             <motion.form
-              ref={formRef}
               onSubmit={handleFormSubmit}
               className="p-8 rounded-3xl shadow-xl"
               style={{
@@ -423,6 +373,10 @@ export default function ConnectSection() {
                   ? '0 25px 50px -12px rgba(0,0,0,0.5)'
                   : '0 25px 50px -12px rgba(0,0,0,0.15)',
               }}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }} // Trigger form entry when 30% in view
+              transition={{ staggerChildren: 0.1, delayChildren: 0.2 }} // Stagger form fields
             >
               <h3 className={`text-2xl font-bold mb-6 text-center  ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                 Let's{' '}
@@ -437,7 +391,8 @@ export default function ConnectSection() {
               </p>
 
               <div className="grid gap-4 mb-6">
-                <div>
+                {/* Form fields */}
+                <motion.div variants={formFieldVariants}>
                   <input
                     type="text"
                     placeholder="Your Name *"
@@ -447,8 +402,8 @@ export default function ConnectSection() {
                     className="w-full px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     style={inputStyles}
                   />
-                </div>
-                <div>
+                </motion.div>
+                <motion.div variants={formFieldVariants}>
                   <input
                     type="email"
                     placeholder="Your Email *"
@@ -458,9 +413,8 @@ export default function ConnectSection() {
                     className="w-full px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     style={inputStyles}
                   />
-                </div>
-
-                <div>
+                </motion.div>
+                <motion.div variants={formFieldVariants}>
                   <input
                     type="tel"
                     placeholder="Your Contact No (optional)"
@@ -469,9 +423,8 @@ export default function ConnectSection() {
                     className="w-full px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     style={inputStyles}
                   />
-                </div>
-
-                <div>
+                </motion.div>
+                <motion.div variants={formFieldVariants}>
                   <select
                     value={form.service}
                     onChange={(e) => setForm({ ...form, service: e.target.value })}
@@ -486,9 +439,8 @@ export default function ConnectSection() {
                     <option value="consulting">Consulting</option>
                     <option value="other">Other</option>
                   </select>
-                </div>
-
-                <div>
+                </motion.div>
+                <motion.div variants={formFieldVariants}>
                   <textarea
                     rows={5}
                     placeholder="Tell me about your project. What are your goals? 💡 (min 20 characters)"
@@ -499,9 +451,8 @@ export default function ConnectSection() {
                     className="w-full px-4 py-3 rounded-xl resize-none outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     style={inputStyles}
                   />
-                </div>
-
-                <div>
+                </motion.div>
+                <motion.div variants={formFieldVariants}>
                   <input
                     type="number"
                     placeholder="Estimated Budget in $ (optional)"
@@ -510,7 +461,7 @@ export default function ConnectSection() {
                     className="w-full px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     style={inputStyles}
                   />
-                </div>
+                </motion.div>
               </div>
 
               {formError && (
@@ -529,7 +480,7 @@ export default function ConnectSection() {
                     : 'linear-gradient(135deg, #e50914, #ff3b3b)',
                   color: '#fff',
                   boxShadow: '0 4px 20px rgba(229,9,20,0.3)',
-                  overflow: 'hidden', // keep overflow hidden on button
+                  overflow: 'hidden',
                   zIndex: 1
                 }}
                 whileHover={{
@@ -579,13 +530,12 @@ export default function ConnectSection() {
                     transition={{ duration: 0.3, ease: 'easeOut' }}
                     style={{
                       originX: 0.5,
-                      zIndex: 0, // ensure it's below the text
-                      pointerEvents: 'none' // important: don’t block clicks
+                      zIndex: 0,
+                      pointerEvents: 'none'
                     }}
                   />
                 )}
               </motion.button>
-
             </motion.form>
           </div>
         </div>

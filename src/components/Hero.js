@@ -49,11 +49,6 @@ export default function Hero() {
     <section 
       ref={containerRef}
       className="min-h-screen flex flex-col justify-center px-4 sm:px-6 relative overflow-hidden"
-      style={{
-        background: isDark 
-          ? 'radial-gradient(ellipse at top, #0f0f15, #000)'
-          : 'radial-gradient(ellipse at top, #f9f9ff, #fff)',
-      }}
     >
       
       {/* Main Content */}

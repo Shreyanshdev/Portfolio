@@ -19,7 +19,8 @@ export default function Home() {
   const { isDark } = useTheme()
 
   return (
-    <div className="relative">
+    <div className={`relative overflow-hidden transition-colors duration-500
+      ${isDark ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
 
     <Navbar />
     {/* ... floating shapes, Hero, ProjectsStack ... */}

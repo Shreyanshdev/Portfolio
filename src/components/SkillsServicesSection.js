@@ -1,196 +1,333 @@
-// src/components/SkillsServicesSection.js
 'use client';
 
-import { useRef, useEffect } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useRef, useState, useEffect } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { useTheme } from '@/context/ThemeContext';
-import { Code, Layout, BrainCircuit } from 'lucide-react'; // Example icons for services
+import { Code, Layout, BrainCircuit, Lightbulb, TrendingUp, ShieldCheck } from 'lucide-react';
 
-gsap.registerPlugin(ScrollTrigger);
+// --- Framer Motion Variants ---
+const sectionTitleVariants = {
+  hidden: { opacity: 0, y: -50 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+};
+
+const skillTagVariants = {
+  hidden: { scale: 0.4, opacity: 0 },
+  visible: { scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 200, damping: 15 } },
+};
+
+const serviceContentVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut", delay: 0.1 } },
+};
+
+// --- Data ---
+const serviceData = [
+  {
+    title: 'Frontend Development',
+    desc: 'Crafting responsive, performant UIs with modern frameworks like React, Next.js, and Tailwind CSS for exceptional user experiences.',
+    Icon: Layout
+  },
+  {
+    title: 'Backend & APIs',
+    desc: 'Building robust, scalable, and secure server-side applications and RESTful APIs using Node.js, Express, and databases like PostgreSQL/MongoDB.',
+    Icon: Code
+  },
+  {
+    title: 'AI/LLM Integrations',
+    desc: 'Integrating AI capabilities and Large Language Models (LLMs) into applications, automating workflows and enhancing intelligence with tools like OpenAI API.',
+    Icon: BrainCircuit
+  },
+  {
+    title: 'Performance Optimization',
+    desc: 'Optimizing web applications for speed, efficiency, and SEO. Ensuring fast load times and smooth interactions across all devices.',
+    Icon: TrendingUp
+  },
+  {
+    title: 'Deployment & DevOps',
+    desc: 'Setting up continuous integration/delivery (CI/CD) pipelines, deploying applications on platforms like Vercel and AWS, and managing infrastructure.',
+    Icon: ShieldCheck
+  },
+  {
+    title: 'Technical Consulting',
+    desc: 'Providing expert guidance on technology stack, architecture design, and best practices to help clients make informed decisions and achieve their project goals.',
+    Icon: Lightbulb
+  },
+];
+
+const skills = [
+  'Next.js', 'React', 'TypeScript', 'JavaScript', 'HTML5', 'CSS3', 'TailwindCSS', 'Shadcn/ui',
+  'Node.js', 'Express', 'REST API', 'GraphQL', 'PostgreSQL', 'MongoDB', 'Prisma', 'Supabase',
+  'Vercel', 'AWS', 'Netlify', 'Git/GitHub', 'Redux', 'Zustand', 'Inngest', 'OpenAI API', 'Docker',
+  'Figma', 'Stripe API', 'WebSockets', 'Jest', 'Cypress'
+];
+
+// Individual Service Item Component
+const ServiceScrollItem = ({ service, isDark, index, itemRefs, currentSegmentProgress, lineActive }) => {
+  const iconRef = useRef(null);
+  const itemRef = useRef(null);
+  itemRefs.current[index] = { itemRef, iconRef };
+
+  const glowStyles = {
+    current: isDark
+      ? '0 0 25px rgba(255, 59, 59, 0.9), 0 0 50px rgba(255, 59, 59, 0.6)'
+      : '0 0 20px rgba(229, 9, 20, 0.7), 0 0 40px rgba(229, 9, 20, 0.5)',
+    past: isDark
+      ? '0 0 10px rgba(255, 59, 59, 0.4), 0 0 20px rgba(255, 59, 59, 0.2)'
+      : '0 0 8px rgba(229, 9, 20, 0.3), 0 0 16px rgba(229, 9, 20, 0.1)',
+    default: '0 0 0px rgba(0,0,0,0)'
+  };
+
+  const hasLineTouched = lineActive >= index;
+  const isLineCurrentlyOn = lineActive === index;
+
+  const iconScale = useTransform(currentSegmentProgress, [0, 0.5, 1], [
+    hasLineTouched ? 1.0 : 0.9,
+    isLineCurrentlyOn ? 1.2 : 1.0,
+    1.0
+  ]);
+
+  const iconOpacity = useTransform(currentSegmentProgress, [0, 0.2, 0.8, 1], [
+    hasLineTouched ? 1 : 0.4,
+    1,
+    1,
+    1
+  ]);
+
+  const iconShadow = useTransform(currentSegmentProgress, [0, 0.2, 0.5, 0.8, 1], [
+    hasLineTouched ? glowStyles.past : glowStyles.default,
+    isLineCurrentlyOn ? glowStyles.current : glowStyles.past,
+    isLineCurrentlyOn ? glowStyles.current : glowStyles.past,
+    isLineCurrentlyOn ? glowStyles.current : glowStyles.past,
+    glowStyles.past
+  ]);
+
+  const contentVisibility = hasLineTouched ? "visible" : "hidden";
+
+  return (
+    <motion.div
+      ref={itemRef}
+      className="flex items-start space-x-4 relative z-20"
+    >
+      {service.Icon && (
+        <div
+          className='relative z-30' // Static wrapper
+          ref={iconRef}
+        >
+          <motion.div
+            className="flex-shrink-0 p-2 rounded-full"
+            style={{
+              backgroundColor: isDark ? '#e5091420' : '#ff3b3b10',
+              scale: iconScale,
+              opacity: iconOpacity,
+              boxShadow: iconShadow,
+              transition: 'transform 0.2s ease-out, opacity 0.2s ease-out, box-shadow 0.2s ease-out'
+            }}
+          >
+            <service.Icon className="w-8 h-8 text-red-500 " />
+          </motion.div>
+        </div>
+      )}
+
+      <motion.div
+        initial="hidden"
+        animate={contentVisibility}
+        variants={serviceContentVariants}
+        className="relative z-40"
+      >
+        <h4 className="text-xl font-semibold mb-1 bg-gradient-to-r from-red-500 to-orange-600 bg-clip-text text-transparent">
+          {service.title}
+        </h4>
+        <p className={`text-base ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+          {service.desc}
+        </p>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+
 
 export default function SkillsServicesSection() {
   const { isDark } = useTheme();
-  const sectionRef = useRef(null);
-  const svgRef = useRef(null);
+  const servicesContainerRef = useRef(null);
+  const serviceItemRefs = useRef([]);
+  const [svgPath, setSvgPath] = useState('');
+  const [viewBoxDimensions, setViewBoxDimensions] = useState({ width: 1, height: 1 });
 
+  const { scrollYProgress: containerScrollProgress } = useScroll({
+    target: servicesContainerRef,
+    offset: ["start center", "end center"]
+  });
+
+  const pathLength = useTransform(containerScrollProgress, [0, 1], [0, 1]);
+
+  // State to determine which icon is currently being passed by the line
+  const [lineActive, setLineActive] = useState(-1); // Changed from activeIndex to lineActive for clarity
+
+  // Effect to calculate SVG path and viewBox on mount/resize
   useEffect(() => {
-    if (!sectionRef.current || !svgRef.current) return;
+    const calculateSvgPath = () => {
+      if (!servicesContainerRef.current || serviceItemRefs.current.length === 0) return;
 
-    const ctx = gsap.context(() => {
-      const svg = svgRef.current;
-      const paths = [
-        { id: '#svgPath1', textId: '#svgText1', textDelay: 0.1 },
-        { id: '#svgPath2', textId: '#svgText2', textDelay: 0.3 },
-        { id: '#svgPath3', textId: '#svgText3', textDelay: 0.2 },
-        // Add more paths and text IDs as you expand the SVG
-      ];
+      const containerRect = servicesContainerRef.current.getBoundingClientRect();
+      const newPathPoints = [];
 
-      // --- SVG Drawing and Text Reveal Animation ---
-      const masterTimeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top top', // Start when section hits top of viewport
-          end: 'bottom bottom', // End when section leaves bottom of viewport
-          scrub: 0.8, // Link animation to scroll position, with a little lag for smoothness
-          pin: true, // Pin the section while scrolling through its animation
-          // markers: true, // Uncomment for debugging ScrollTrigger
-        },
-      });
-
-      paths.forEach((item) => {
-        const path = svg.querySelector(item.id);
-        const text = svg.querySelector(item.textId);
-
-        if (path) {
-          const length = path.getTotalLength();
-          gsap.set(path, {
-            strokeDasharray: length + ' ' + length,
-            strokeDashoffset: length,
-          });
-
-          // Animate path drawing in sync with scroll
-          masterTimeline.to(path, { strokeDashoffset: 0, ease: 'none' }, '<'); // Use '<' to start simultaneously with previous
-        }
-
-        if (text) {
-          // Animate text opacity
-          masterTimeline.to(text, { opacity: 1, ease: 'power2.out' }, `+=${item.textDelay}`); // Reveal text shortly after path starts drawing
+      serviceItemRefs.current.forEach((refs) => {
+        const iconElement = refs.iconRef.current;
+        if (iconElement) {
+          const iconRect = iconElement.getBoundingClientRect();
+          // Calculate center of icon relative to container's top-left
+          const x = (iconRect.left + iconRect.width / 2 - containerRect.left);
+          const y = (iconRect.top + iconRect.height / 2 - containerRect.top);
+          newPathPoints.push({ x, y });
         }
       });
 
-      // --- Other Section Animations (independent of SVG drawing but triggered by scroll) ---
+      if (newPathPoints.length > 0) {
+        let pathData = `M ${newPathPoints[0].x} ${newPathPoints[0].y}`;
+        for (let i = 1; i < newPathPoints.length; i++) {
+          pathData += ` L ${newPathPoints[i].x} ${newPathPoints[i].y}`;
+        }
+        setSvgPath(pathData);
 
-      // Animate service cards fading/sliding in
-      gsap.from('.service-card', {
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top 70%', // Adjust start to be lower so it doesn't clash with SVG
-          toggleActions: 'play none none reverse', // Play on scroll down, reverse on scroll up
-        },
-        y: 50,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: 'power1.out',
-      });
+        const maxIconX = Math.max(...newPathPoints.map(p => p.x));
+        const maxIconY = Math.max(...newPathPoints.map(p => p.y));
+        setViewBoxDimensions({
+          width: Math.max(containerRect.width, maxIconX + 50),
+          height: Math.max(containerRect.height, maxIconY + 50)
+        });
+      }
+    };
 
-      // Animate skill tags popping in
-      gsap.from('.skill-tag', {
-        scrollTrigger: {
-          trigger: '.skill-tags-container', // Trigger based on skill tags container
-          start: 'top 90%', // Adjust start for a smooth entry
-          toggleActions: 'play none none reverse',
-        },
-        scale: 0.8,
-        opacity: 0,
-        duration: 0.5,
-        stagger: 0.05,
-        ease: 'back.out(1.7)',
-      });
-    }, sectionRef);
+    calculateSvgPath();
+    window.addEventListener('resize', calculateSvgPath);
+    const timeoutId = setTimeout(calculateSvgPath, 200);
 
-    return () => ctx.revert();
-  }, [isDark]);
+    return () => {
+      window.removeEventListener('resize', calculateSvgPath);
+      clearTimeout(timeoutId);
+    };
+  }, []);
 
-  const serviceData = [
-    {
-      title: 'Frontend Development',
-      desc: 'Pixel-perfect, responsive UIs with React, Next.js & TailwindCSS, delivering exceptional user experiences.',
-      image: '/images/frontend-icon.svg', // Placeholder image URL
-      Icon: Layout // Lucide icon
-    },
-    {
-      title: 'Backend & APIs',
-      desc: 'Building robust, scalable RESTful APIs and microservices with Node, Express, PostgreSQL & MongoDB.',
-      image: '/images/backend-icon.svg', // Placeholder image URL
-      Icon: Code // Lucide icon
-    },
-    {
-      title: 'AI Integrations',
-      desc: 'Automating workflows and enhancing applications with OpenAI API, Inngest & serverless functions.',
-      image: '/images/ai-icon.svg', // Placeholder image URL
-      Icon: BrainCircuit // Lucide icon
-    },
-  ];
+  // Effect to update lineActive index based on overall scroll progress
+  useEffect(() => {
+    const updateLineActive = (latestProgress) => {
+      if (!servicesContainerRef.current || serviceItemRefs.current.length === 0) {
+        setLineActive(-1); // No items, no active line
+        return;
+      }
 
-  const skills = [
-    'Next.js', 'React', 'TypeScript', 'HTML5', 'CSS3', 'TailwindCSS',
-    'Node.js', 'Express', 'REST API', 'GraphQL', 'PostgreSQL', 'MongoDB',
-    'Vercel', 'AWS', 'Git/GitHub', 'Redux', 'Zustand', 'Inngest', 'OpenAI API', 'Docker', 'Kubernetes'
-  ];
+      const totalItems = serviceData.length;
+      // Scale scroll progress (0-1) to the number of segments (items)
+      const segmentProgress = latestProgress * totalItems;
 
-  const svgStrokeColor = isDark ? '#ff3b3b' : '#e50914'; // Primary theme color for stroke
-  const svgTextColor = isDark ? '#e50914' : '#ff3b3b'; // Primary theme color for text
+      let currentActiveSegment = -1;
+      for (let i = 0; i < totalItems; i++) {
+        // If the line's progress is within this segment's range
+        if (segmentProgress >= i && (i === totalItems - 1 || segmentProgress < i + 1)) {
+          currentActiveSegment = i;
+          break;
+        }
+      }
+      setLineActive(currentActiveSegment);
+    };
+
+    const unsubscribe = containerScrollProgress.onChange(updateLineActive);
+    return () => unsubscribe();
+  }, [containerScrollProgress]);
+
 
   return (
     <section
-      ref={sectionRef}
       id="skills-services"
-      className={`relative min-h-screen py-24 px-6 sm:px-8 flex flex-col justify-center items-center overflow-hidden transition-colors duration-500 ${
-        isDark ? 'bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-900'
-      }`}
+      className='relative min-h-screen py-24 px-6 sm:px-8 flex flex-col justify-center items-center overflow-hidden transition-colors duration-500'
     >
-      
-
       {/* Main content layer */}
       <div className="relative z-10 max-w-7xl mx-auto w-full">
-        <h2 className="text-3xl sm:text-5xl font-bold text-center mb-16 tracking-tight">
-          My <span className="bg-gradient-to-r from-red-500 to-fuchsia-600 bg-clip-text text-transparent">Services</span> &{' '}
-          <span className="bg-gradient-to-r from-red-500 to-fuchsia-600 bg-clip-text text-transparent">Skills</span>
-        </h2>
+        <motion.h2
+          className="text-4xl sm:text-6xl font-extrabold text-center mb-16 tracking-tight leading-tight"
+          variants={sectionTitleVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+        >
+          My <span className="bg-gradient-to-r from-red-500 to-orange-600 bg-clip-text text-transparent">Expertise</span>
+        </motion.h2>
 
-        {/* Services */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
-          {serviceData.map(({ title, desc, image, Icon }, i) => (
-            <div
-              key={title}
-              className={`service-card p-6 rounded-3xl border transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl flex flex-col items-center text-center ${
-                isDark
-                  ? 'bg-gradient-to-br from-gray-800/60 to-gray-900/60 border-gray-700/50 hover:border-red-500/50 shadow-md shadow-gray-800/30'
-                  : 'bg-gradient-to-br from-white/70 to-gray-100/70 border-gray-200/50 hover:border-red-300/50 shadow-md shadow-gray-200/30'
-              }`}
-              style={{
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)', // For Safari support
-              }}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-12">
+          {/* Left Column: Skills (Mobile smaller text) */}
+          <div className="flex flex-col items-center">
+            <h3
+              className={`text-3xl sm:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-red-500 to-orange-600 bg-clip-text text-transparent`}
             >
-              {/* Using Lucide Icon for demonstration, you can switch back to img if preferred */}
-              {Icon && <Icon className="w-16 h-16 mb-4" style={{ color: svgTextColor }} />}
-              {/* Or use an image if you have them:
-              <img src={image} alt={title} className="w-20 h-20 mb-4 object-contain" />
-              */}
-              <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-red-500 to-fuchsia-600 bg-clip-text text-transparent">
-                {title}
-              </h3>
-              <p className={`text-base ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{desc}</p>
-            </div>
-          ))}
-        </div>
+              Core Tech Stack
+            </h3>
+            <motion.div
+              className="flex flex-wrap justify-center gap-3 md:gap-4 w-full"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ staggerChildren: 0.07 }}
+            >
+              {skills.map((skill, i) => (
+                <motion.span
+                  key={i}
+                  className={`skill-tag px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-sm sm:text-base font-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500
+                    ${isDark
+                      ? 'bg-gray-900 text-gray-200 border border-red-500/30'
+                      : 'bg-gray-100 text-gray-800 border border-red-200'
+                    }`}
+                  style={{ boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.05)' }}
+                  variants={skillTagVariants}
+                >
+                  {skill}
+                </motion.span>
+              ))}
+            </motion.div>
+          </div>
 
-        {/* Skills */}
-        <div className="max-w-4xl mx-auto skill-tags-container px-4">
-          <h3
-            className={`text-3xl font-bold mb-8 text-center bg-gradient-to-r from-red-500 to-fuchsia-600 bg-clip-text text-transparent`}
-          >
-            My Core Tech Stack
-          </h3>
-          <div className="flex flex-wrap justify-center gap-3">
-            {skills.map((skill) => (
-              <span
-                key={skill}
-                className={`skill-tag px-4 py-2 rounded-full text-base font-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                  isDark
-                    ? 'bg-gray-800 text-gray-200 border border-red-500/30'
-                    : 'bg-gray-100 text-gray-800 border border-red-200'
-                }`}
-                style={{
-                    boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.05)'
-                }}
+          {/* Right Column: Services with Scroll-Driven Icons and Progress Line */}
+          <div ref={servicesContainerRef} className="flex flex-col items-center relative">
+            <h3
+              className={`text-3xl sm:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-red-500 to-orange-600 bg-clip-text text-transparent`}
+            >
+              My Services
+            </h3>
+            <div className="space-y-8 w-full">
+              {serviceData.map((service, i) => (
+                <ServiceScrollItem
+                  key={i}
+                  service={service}
+                  isDark={isDark}
+                  index={i}
+                  itemRefs={serviceItemRefs}
+                  lineActive={lineActive} // Pass lineActive for dynamic Z-index & visibility
+                  currentSegmentProgress={containerScrollProgress} // Pass overall scroll progress
+                />
+              ))}
+
+              {/* Progress Line SVG */}
+              {svgPath && (
+                <svg
+                className="absolute top-0 left-0 w-full h-full pointer-events-none z-0" // ↓ changed z-10 to z-0
+                viewBox={`0 0 ${viewBoxDimensions.width} ${viewBoxDimensions.height}`}
+                preserveAspectRatio="xMinYMin meet"
               >
-                {skill}
-              </span>
-            ))}
+                <motion.path
+                  d={svgPath}
+                  stroke={isDark ? '#E50914' : '#FF3B3B'}
+                  strokeWidth="2"
+                  fill="none"
+                  strokeLinecap="round"
+                  style={{ pathLength: pathLength ,
+                    zIndex:'0',
+                  }}
+                />
+              </svg>
+              
+              )}
+            </div>
           </div>
         </div>
       </div>
