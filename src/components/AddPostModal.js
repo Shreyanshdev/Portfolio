@@ -4,19 +4,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Trash2, Heading, TextCursorInput, Code, Quote, CalendarDays } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
 
 const AddPostModal = ({ isOpen, onClose, onSave }) => {
+  const {isDark} = useTheme();
   const [postData, setPostData] = useState({
     slug: '',
     title: '',
     excerpt: '',
-    // Default date to current date, formatted
     date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
     readTime: '',
     featuredImage: '',
     imageAlt: '',
     author: 'Shreyansh Gupta', // Default author, can be made an input
-    tags: '', // Comma-separated string
+    tags: [''], // Comma-separated string
     content: [{ id: Date.now(), type: 'paragraph', text: '' }] // Start with one paragraph
   });
 
@@ -32,7 +33,7 @@ const AddPostModal = ({ isOpen, onClose, onSave }) => {
         featuredImage: '',
         imageAlt: '',
         author: 'Shreyansh Gupta',
-        tags: '',
+        tags: [''],
         content: [{ id: Date.now(), type: 'paragraph', text: '' }]
       });
     }
@@ -74,7 +75,7 @@ const AddPostModal = ({ isOpen, onClose, onSave }) => {
       return;
     }
     onSave(postData);
-    onClose(); // Close modal after saving
+    onClose(); 
   };
 
   if (!isOpen) return null;
@@ -86,13 +87,13 @@ const AddPostModal = ({ isOpen, onClose, onSave }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 overflow-y-auto "
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto "
         >
           <motion.div
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
-            className="glass-card w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 rounded-lg shadow-xl relative"
+            className={`glass-card  w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 rounded-lg scrollbar-hide shadow-xl relative ${isDark ? 'bg-black' : 'bg-white'}`}
           >
             <button
               onClick={onClose}

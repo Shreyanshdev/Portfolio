@@ -1,25 +1,26 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react'; // Added useCallback
 import { easeInOut, motion } from 'framer-motion';
 import { useTheme } from '@/context/ThemeContext';
 import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-import { Calendar, Clock, ArrowRight, Camera, Heart, Star, Sparkles, PlusCircle } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, Camera, Heart, Star, Sparkles, PlusCircle, SparkleIcon, Loader2 } from 'lucide-react';
+
 import ThemeToggle from '@/components/utility/ThemeToggle';
 import AddPostModal from '@/components/AddPostModal';
-import './blog.css'
+import './blog.css';
 import LogoReveal from '@/components/utility/LogoReveal';
 import TravelExperiences from '@/components/TravelExperiences';
-
-// --- REMOVE THIS LINE: No longer importing mockBlogPosts directly ---
-// import { mockBlogPosts } from '@/constant/mockBlogData'; 
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
+
+// Define how many posts to load per batch
+const POSTS_PER_LOAD = 6;
 
 const BlogPage = () => {
   const { isDark } = useTheme();
@@ -28,10 +29,16 @@ const BlogPage = () => {
   const blogCardsRef = useRef([]);
   const [activeImage, setActiveImage] = useState(0);
 
+  const [isLoading, setLoading] = useState(false); // Manages loading state for API calls
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAddPostModal, setShowAddPostModal] = useState(false);
-  // Initialize with an empty array; data will be fetched from MongoDB via API
-  const [blogPosts, setBlogPosts] = useState([]); 
+
+  // State for posts: `allBlogPosts` holds everything from the first fetch,
+  // `displayedPosts` holds only what's currently rendered.
+  const [allBlogPosts, setAllBlogPosts] = useState([]);
+  const [displayedPosts, setDisplayedPosts] = useState([]);
+  const [hasMorePosts, setHasMorePosts] = useState(true); // Tracks if there are more posts to fetch from the "total" set
+  const [currentDisplayCount, setCurrentDisplayCount] = useState(0); // How many posts are currently displayed
 
   const personalImages = [
     {
@@ -63,34 +70,109 @@ const BlogPage = () => {
 
   const [imageRotations, setImageRotations] = useState([]);
 
+  // This function will fetch posts.
+  // It's `useCallback` because it's a dependency for `useEffect` and `handleLoadMore`.
+  const fetchPosts = useCallback(async (initialLoad = false) => {
+    setLoading(true);
+    try {
+      // In a real scenario, your API might support offset/limit for pagination
+      // For now, we'll fetch ALL posts once and handle pagination in client-side state
+      // If your API supports offset/limit: const response = await fetch(`/api/blog-posts?offset=${offset}&limit=${limit}`);
+      const response = await fetch('/api/blog-posts');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json(); // This `data` is your *full* list of posts
+
+      setAllBlogPosts(data); // Store all fetched posts
+      // Determine initial posts to display
+      const initialPosts = data.slice(0, POSTS_PER_LOAD);
+      setDisplayedPosts(initialPosts);
+      setCurrentDisplayCount(initialPosts.length);
+      setHasMorePosts(initialPosts.length < data.length); // Check if there are more to load initially
+
+    } catch (error) {
+      console.error("Failed to fetch blog posts from API:", error);
+      // Handle error gracefully, maybe set an error state
+      setHasMorePosts(false); // No more posts if fetching failed
+    } finally {
+      setLoading(false);
+    }
+  }, []); // No dependencies, as it fetches all posts initially
+
+  // Initial data fetch on component mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const rotations = personalImages.map(() => Math.random() * 6 - 3);
-      setImageRotations(rotations);
 
       const adminFlag = localStorage.getItem('isAdmin');
       if (adminFlag === 'true') {
         setIsAdmin(true);
       }
 
-      // --- FETCH POSTS FROM THE MONGODB API ROUTE ---
-      const fetchPosts = async () => {
-        try {
-          const response = await fetch('/api/blog-posts');
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data = await response.json();
-          setBlogPosts(data); // Populate blogPosts from MongoDB
-        } catch (error) {
-          console.error("Failed to fetch blog posts from API:", error);
-          // Optionally, you could set some fallback data here if the API fails
-        }
-      };
-      fetchPosts();
+      fetchPosts(true); // Call fetchPosts for initial load
     }
-  }, [personalImages.length]); // Dependency array includes personalImages.length
+  }, [personalImages.length, fetchPosts]); // Add fetchPosts to dependency array due to useCallback
 
+  // Handle "Load More" button click
+  const handleLoadMore = () => {
+    if (isLoading || !hasMorePosts) return; // Prevent multiple loads or loading if no more posts
+
+    setLoading(true);
+    // Simulate a small delay for a smoother loading indicator experience
+    setTimeout(() => {
+      const nextBatchStart = currentDisplayCount;
+      const nextBatchEnd = currentDisplayCount + POSTS_PER_LOAD;
+      const newPosts = allBlogPosts.slice(nextBatchStart, nextBatchEnd);
+
+      setDisplayedPosts(prev => [...prev, ...newPosts]);
+      setCurrentDisplayCount(prev => prev + newPosts.length);
+
+      // Check if we've displayed all available posts
+      if ((prev => prev + newPosts.length) >= allBlogPosts.length) {
+        setHasMorePosts(false);
+      }
+      setLoading(false);
+    }, 500); // Small delay to show loading state
+  };
+
+  const handleSaveNewPost = async (newPostData) => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/blog-posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newPostData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Post saved successfully:', result.post);
+      alert('Post saved successfully!');
+
+      // Add the newly created post to the beginning of allBlogPosts
+      setAllBlogPosts(prevPosts => [result.post, ...prevPosts]);
+      // Re-evaluate displayed posts to include the new one at the top
+      setDisplayedPosts(prevDisplayed => [result.post, ...prevDisplayed].slice(0, currentDisplayCount + 1)); // Ensure it appears
+      setCurrentDisplayCount(prev => prev + 1); // Increment count for the new post
+      setHasMorePosts(true); // A new post means there might be more to load now
+
+      setShowAddPostModal(false);
+
+    } catch (error) {
+      console.error('Failed to save blog post:', error);
+      alert(`Failed to save post: ${error.message}. Check console for details.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Remaining useEffect for GSAP animations (uncomment if you want them back)
   // useEffect(() => {
   //   if (typeof window === 'undefined' || !containerRef.current) return;
 
@@ -153,22 +235,23 @@ const BlogPage = () => {
   //       }
   //     });
 
-  //     blogCardsRef.current.forEach((card, i) => {
-  //       if (card) {
-  //         gsap.from(card, {
-  //           opacity: 0,
-  //           x: 50,
-  //           duration: 0.8,
-  //           delay: i * 0.15,
-  //           ease: 'power3.out',
-  //           scrollTrigger: {
-  //             trigger: card,
-  //             start: 'top 90%',
-  //             toggleActions: 'play none none none'
-  //           }
-  //         });
-  //       }
-  //     });
+  //     // Removed GSAP animation for blog cards to rely on Framer Motion's whileInView
+  //     // blogCardsRef.current.forEach((card, i) => {
+  //     //   if (card) {
+  //     //     gsap.from(card, {
+  //     //       opacity: 0,
+  //     //       x: 50,
+  //     //       duration: 0.8,
+  //     //       delay: i * 0.15,
+  //     //       ease: 'power3.out',
+  //     //       scrollTrigger: {
+  //     //         trigger: card,
+  //     //         start: 'top 90%',
+  //     //         toggleActions: 'play none none none'
+  //     //       }
+  //     //     });
+  //     //   }
+  //     // });
 
   //     gsap.utils.toArray('.story-block').forEach((block, i) => {
   //       gsap.from(block, {
@@ -211,7 +294,7 @@ const BlogPage = () => {
   //   }, containerRef);
 
   //   return () => ctx.revert();
-  // }, [imageRotations]);
+  // }, [imageRotations]); // Added imageRotations to dependency array
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -248,6 +331,7 @@ const BlogPage = () => {
     }
   };
 
+  // This interval is for the hero image carousel, unrelated to blog posts
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveImage(prev => (prev + 1) % personalImages.length);
@@ -256,35 +340,6 @@ const BlogPage = () => {
     return () => clearInterval(interval);
   }, [personalImages.length]);
 
-  const handleSaveNewPost = async (newPostData) => {
-    try {
-      // --- SEND TO MONGODB API ROUTE FOR PERSISTENCE ---
-      const response = await fetch('/api/blog-posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newPostData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Post saved successfully:', result.post);
-      alert('Post saved successfully!'); // No need to refresh, as API returns the new post
-
-      // Add the newly created post (from MongoDB) to the state
-      setBlogPosts(prevPosts => [result.post, ...prevPosts]);
-      setShowAddPostModal(false);
-
-    } catch (error) {
-      console.error('Failed to save blog post:', error);
-      alert(`Failed to save post: ${error.message}. Check console for details.`);
-    }
-  };
 
   return (
     <div
@@ -299,11 +354,10 @@ const BlogPage = () => {
        style={{
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(20px)', // Kept your original value here
-        // Background color for this nav element is controlled by GSAP from useEffect above
       }}>
         <Link href={'/'}> <LogoReveal/></Link>
       </div>
-    
+
 
       {/* Animated SVG Background */}
       <svg
@@ -376,9 +430,9 @@ const BlogPage = () => {
           <motion.h1
             className={`hero-text text-2xl md:text-4xl font-bold mb-6`}
             initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
           >
             My{' '}
             <span className={`${isDark ? 'text-red-500' : 'text-red-500'}`}>Journey</span>
@@ -386,9 +440,9 @@ const BlogPage = () => {
           <motion.p
             className={`hero-text text-md md:text-xl ${isDark ? 'text-muted-foreground-dark' : 'text-muted-foreground-light'} max-w-2xl mx-auto leading-relaxed`}
             initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
           >
             Where stories meet code, and dreams take digital form
           </motion.p>
@@ -398,11 +452,11 @@ const BlogPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 ">
           {/* Left Column - Personal Journey (2/3 width) */}
           <motion.div
-            className="lg:col-span-2 overflow-hidden" // Added overflow-hidden here
-            variants={containerVariants} // Apply parent variants
+            className="lg:col-span-2 overflow-hidden"
+            variants={containerVariants}
             initial=""
             whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }} // Trigger when 20% of element is in view
+            viewport={{ once: true, amount: 0.2 }}
           >
             {/* Story Introduction */}
             <div className="story-block mb-16 ">
@@ -480,10 +534,7 @@ const BlogPage = () => {
 
             {/* Featured Projects */}
             <div className="mt-24 space-y-16">
-              {/* Greenland Project */}
-              <div className="mt-24 space-y-16">
               <TravelExperiences isDark={isDark} />
-            </div>
             </div>
 
             {/* Quote Section */}
@@ -523,7 +574,7 @@ const BlogPage = () => {
                   <div className="mb-8 text-center">
                     <motion.button
                       onClick={() => setShowAddPostModal(true)}
-                      className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 ${isDark ? 'bg-red-600 text-white' : 'bg-red-700 text-white'} hover:${isDark ? 'bg-red-700' : 'bg-red-800'} shadow-lg ${isDark ? 'animate-pulse-glow-dark' : 'animate-pulse-glow-light'}`}
+                      className={`inline-flex items-center cursor-pointer justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 ${isDark ? 'bg-red-600 text-white' : 'bg-red-700 text-white'} hover:${isDark ? 'bg-red-700' : 'bg-red-800'} shadow-lg ${isDark ? 'animate-pulse-glow-dark' : 'animate-pulse-glow-light'}`}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -532,67 +583,105 @@ const BlogPage = () => {
                   </div>
                 )}
 
-                <div className="space-y-6">
-                  {blogPosts.slice(0, 6).map((post, i) => (
-                    <motion.div
-                      key={post.slug}
-                      ref={el => blogCardsRef.current[i] = el}
-                      className="group cursor-pointer"
-                    >
-                      <Link href={`/blog/${post.slug}`} className="block">
-                      <div className={`rounded-xl p-4 transition-all duration-300 hover:-translate-y-2 ${isDark ? 'glass-base-dark bg-black/20' : 'glass-base-light bg-gray-100/40'} hover:shadow-[0_8px_32px_0_rgba(220,38,38,0.25)]`}>
-                        <div className="flex gap-4">
-                          <div className="flex-shrink-0">
-                            <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-red-500/30">
-                              {post.featuredImage ? (
-                                <img
-                                  src={post.featuredImage}
-                                  alt={post.imageAlt || "Blog Post Image"}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                />
-                              ) : (
-                                <div className={`w-full h-full flex items-center justify-center text-xs text-center p-1 ${isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-500'}`}>
-                                  No Image
+                {isLoading && displayedPosts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Loader2
+                      className={`h-12 w-12 animate-spin mb-4 ${isDark ? 'text-red-500' : 'text-red-600'}`}
+                      aria-hidden="true"
+                    />
+                    <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'} text-lg`}>
+                      Loading latest thoughts...
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {displayedPosts.map((post, i) => (
+                      <motion.div
+                        key={post.slug}
+                        className="group cursor-pointer"
+                        initial={{ opacity: 0, x: -20 }} // Initial state for new posts
+                        animate={{ opacity: 1, x: 0 }}   // Animate to visible state
+                        exit={{ opacity: 0, x: -20 }}    // Exit animation (if using AnimatePresence, though not applied here for list)
+                        transition={{ duration: 0.3, ease: easeInOut }} // Smooth transition
+                        whileHover={{ y: -5 }} // Subtle lift on hover
+                      >
+                        <Link href={`/blog/${post.slug}`} className="block">
+                          <div className={`rounded-xl p-4 transition-all duration-300 hover:-translate-y-2 ${isDark ? 'glass-base-dark bg-black/20' : 'glass-base-light bg-gray-100/40'} hover:shadow-[0_8px_32px_0_rgba(220,38,38,0.25)]`}>
+                            <div className="flex gap-4">
+                              <div className="flex-shrink-0">
+                                <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-red-500/30">
+                                  {post.featuredImage ? (
+                                    <img
+                                      src={post.featuredImage}
+                                      alt={post.imageAlt || "Blog Post Image"}
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                    />
+                                  ) : (
+                                    <div className={`w-full h-full flex items-center justify-center text-xs text-center p-1 ${isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-500'}`}>
+                                      No Image
+                                    </div>
+                                  )}
+                                  <div className="absolute inset-0 bg-gradient-to-t from-red-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                 </div>
-                              )}
-                              <div className="absolute inset-0 bg-gradient-to-t from-red-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              </div>
+
+                              <div className="flex-1 min-w-0">
+                                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} group-hover:text-red-500 transition-colors duration-300 mb-2 line-clamp-2`}>
+                                  {post.title}
+                                </h3>
+                                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-3 line-clamp-2`}>
+                                  {post.excerpt}
+                                </p>
+                                <div className={`flex items-center gap-3 text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    <span>{post.date}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    <span>{post.readTime}</span>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
 
-                          <div className="flex-1 min-w-0">
-                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} group-hover:text-red-500 transition-colors duration-300 mb-2 line-clamp-2`}>
-                              {post.title}
-                            </h3>
-                            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-3 line-clamp-2`}>
-                              {post.excerpt}
-                            </p>
-                            <div className={`flex items-center gap-3 text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                              <div className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                <span>{post.date}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                <span>{post.readTime}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      </Link>
-                    </motion.div>
-                  ))}
-                </div>
+                {hasMorePosts && ( // Only show button if there are more posts to load
+                  <div className={`mt-8 pt-6 ${isDark ? 'border-primary-dark' : 'border-primary-light'} border-t text-center`}>
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={isLoading} // Disable button while loading
+                      className={`${isDark ? 'text-primary-dark' : 'text-primary-light'} cursor-pointer hover:${isDark ? 'text-primary-glow-dark' : 'text-primary-glow-light'} inline-flex items-center gap-2 font-medium transition-colors duration-300 group
+                        ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
+                      `}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-1" /> Loading...
+                        </>
+                      ) : (
+                        <>
+                          View all stories
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
 
-                <div className={`mt-8 pt-6 ${isDark ? 'border-primary-dark' : 'border-primary-light'} border-t text-center`}>
-                  <Link
-                    href="/blog"
-                    className={`${isDark ? 'text-primary-dark' : 'text-primary-light'} hover:${isDark ? 'text-primary-glow-dark' : 'text-primary-glow-light'} inline-flex items-center gap-2 font-medium transition-colors duration-300 group`}
-                  >
-                    View all stories
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                  </Link>
-                </div>
+                {!hasMorePosts && displayedPosts.length > 0 && (
+                  <div className={`mt-8 pt-6 ${isDark ? 'border-primary-dark' : 'border-primary-light'} border-t text-center`}>
+                    <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'} text-sm`}>
+                      You've reached the end of the posts.
+                    </p>
+                  </div>
+                )}
+
               </div>
             </div>
           </div>
