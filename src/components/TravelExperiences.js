@@ -13,7 +13,7 @@ const TravelModal = ({ isOpen, onClose, title, content, isDark }) => {
     >
       {/* Modal Overlay with Glassmorphism */}
       <div
-        className={`absolute mt-10 inset-0 ${isDark ? 'bg-transparent bg-opacity-20' : 'bg-transparent bg-opacity-50'} backdrop-filter -webkit-backdrop-filter backdrop-blur-lg`}
+        className={`absolute  inset-0 ${isDark ? 'bg-transparent bg-opacity-20' : 'bg-transparent bg-opacity-50'} backdrop-filter -webkit-backdrop-filter backdrop-blur-lg`}
       ></div>
 
       {/* Modal Content */}
@@ -22,13 +22,18 @@ const TravelModal = ({ isOpen, onClose, title, content, isDark }) => {
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.3 }}
-        className={`relative p-6 rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto sm:mt-0 mt-18 scrollbar-hide
+        className={`relative p-6 rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto sm:mt-0 mt-20 scrollbar-hide
           ${isDark ? 'bg-black text-white' : 'bg-white text-gray-900'}`}
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
       >
         <button
           onClick={onClose}
-          className={`absolute top-4 right-4 text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-700'} hover:scale-110 transition-transform`}
+          className={`absolute top-4 right-4 w-10 h-10 text-2xl border border-transparent rounded-full cursor-pointer font-bold ${isDark ? 'text-white  bg-gray-700' : 'text-gray-700  bg-gray-400'} hover:scale-110 transition-transform`}
+          style={{
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(20px)', // Kept your original value here
+            // Background color for this nav element is controlled by GSAP from useEffect above
+          }}
         >
           &times;
         </button>
@@ -127,7 +132,7 @@ function TravelExperiences({ isDark }) {
             The spiritual aura, the temples, the vibes – our experience was truly amazing!
           </p>
           <motion.button
-            className={`px-6 py-3 rounded-full cursor-pointer border mt-3 ml-2 ${isDark ? 'border-white text-white hover:bg-white hover:text-gray-900' : 'border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white'} transition-all duration-300`}
+            className={`px-6 py-3 rounded-full cursor-pointer border mt-3 ${isDark ? 'border-white text-white hover:bg-white hover:text-gray-900' : 'border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white'} transition-all duration-300`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => openModal("Spiritual Vibes: Mathura & Vrindavan", mathuraVrindavanContent)}

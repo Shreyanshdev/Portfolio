@@ -21,7 +21,6 @@ export default function Hero() {
   const [typedText, setTypedText] = useState('');
   const [lineIndex, setLineIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
-  const [orbsStyles, setOrbsStyles] = useState([]);
 
 
   // Typing Effect

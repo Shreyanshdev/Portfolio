@@ -221,7 +221,7 @@ export default function ConnectSection() {
           }`}
         >
           Let's{' '}
-          <span className="bg-gradient-to-r from-red-500 to-fuchsia-600 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-red-500 via-red-600 to-red-400 bg-clip-text text-transparent">
             Connect
           </span>
         </h2>
@@ -313,7 +313,7 @@ export default function ConnectSection() {
                       )}
                       <motion.button
                         type="submit"
-                        className="w-full py-3 rounded-xl font-semibold relative overflow-hidden group"
+                        className="w-full py-3 cursor-pointer rounded-xl font-semibold relative overflow-hidden group"
                         style={{
                           background: 'linear-gradient(135deg, #e50914, #ff3b3b)',
                           color: '#fff',
@@ -426,7 +426,7 @@ export default function ConnectSection() {
             >
               <h3 className={`text-2xl font-bold mb-6 text-center  ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                 Let's{' '}
-                <span className="bg-gradient-to-r from-red-500 to-fuchsia-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-red-500 via-red-600 to-red-400 bg-clip-text text-transparent">
                   Collaborate
                 </span>
               </h3>
@@ -520,7 +520,7 @@ export default function ConnectSection() {
               <motion.button
                 type="submit"
                 disabled={sending || sent}
-                className={`w-full py-3 rounded-xl font-semibold relative overflow-hidden group transition-all duration-300 ${
+                className={`w-full py-3 rounded-xl font-semibold relative group transition-all duration-300 ${
                   sending ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
                 }`}
                 style={{
@@ -529,6 +529,8 @@ export default function ConnectSection() {
                     : 'linear-gradient(135deg, #e50914, #ff3b3b)',
                   color: '#fff',
                   boxShadow: '0 4px 20px rgba(229,9,20,0.3)',
+                  overflow: 'hidden', // keep overflow hidden on button
+                  zIndex: 1
                 }}
                 whileHover={{
                   scale: sending || sent ? 1 : 1.02,
@@ -540,7 +542,6 @@ export default function ConnectSection() {
                       : '0 6px 25px rgba(229,9,20,0.4)',
                 }}
                 whileTap={{ scale: sending || sent ? 1 : 0.98 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 10 }}
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   {sending && (
@@ -567,6 +568,8 @@ export default function ConnectSection() {
                   )}
                   {sending ? 'Sending...' : sent ? 'Sent Successfully! ✅' : 'Send Proposal'}
                 </span>
+
+                {/* Hover Effect - Only visible on desktop */}
                 {!sending && !sent && (
                   <motion.span
                     className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"
@@ -574,10 +577,15 @@ export default function ConnectSection() {
                     animate={{ scaleX: 0 }}
                     whileHover={{ scaleX: 1 }}
                     transition={{ duration: 0.3, ease: 'easeOut' }}
-                    style={{ originX: 0.5 }}
+                    style={{
+                      originX: 0.5,
+                      zIndex: 0, // ensure it's below the text
+                      pointerEvents: 'none' // important: don’t block clicks
+                    }}
                   />
                 )}
               </motion.button>
+
             </motion.form>
           </div>
         </div>

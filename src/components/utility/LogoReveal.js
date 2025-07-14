@@ -63,7 +63,7 @@ export default function LogoReveal() {
         {BRAND.map((ch, i) => (
           <motion.span
             key={i}
-            className="letter inline-block font-extrabold text-4xl leading-none"
+            className="letter inline-block font-extrabold text-3xl leading-none"
             style={{
               color: 'transparent', WebkitTextStroke: '1px rgba(229,9,20,0.8)',
               backgroundClip: 'text', backgroundImage: `linear-gradient(90deg, ${isDark ? '#ff3b3b' : '#e50914'}, ${isDark ? '#e50914' : '#ff7878'})`,

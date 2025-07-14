@@ -135,7 +135,7 @@ export default function Navbar() {
                   if (mobileMenuOpen) setMobileMenuOpen(false);
                 }
               }}
-              className={`relative py-2 px-1 text-sm font-medium transition-colors hover:text-white
+              className={`relative py-2 px-1 text-sm font-medium transition-colors hover:border-b-2 hover:border-red-500
                 ${isDark ? 'text-white' : 'text-gray-900'}
                 ${activeSection === item.name.toLowerCase()
                   ? 'text-red-500 border-b-2 border-red-500' // Desktop Active CSS (border on individual link)

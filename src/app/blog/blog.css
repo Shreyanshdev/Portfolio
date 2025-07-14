@@ -65,7 +65,7 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
   0 0 15px rgba(255, 0, 0, 0.5); /* From --shadow-float light */
   border-radius:  50%; /* From --radius */
-  padding: 1rem;
+  padding: 0.75rem;
   cursor: pointer;
   transform: translateZ(0);
 }
@@ -75,11 +75,11 @@
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1)); /* From --gradient-glass dark */
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(20px); /* For Safari compatibility */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* From --glass-border dark */
+  border: 1px solid rgba(255, 255, 255, 0.01); /* From --glass-border dark */
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
               0 0 15px rgba(255, 0, 0, 0.5); /* From --shadow-float dark */
   border-radius: 50%; /* From --radius */
-  padding: 1rem;
+  padding: 0.75rem;
   transform: translateZ(0);
   cursor: pointer;
 }

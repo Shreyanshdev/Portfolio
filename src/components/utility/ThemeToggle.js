@@ -11,9 +11,14 @@ export default function ThemeToggle() {
   return (
     <motion.button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className={`${isDark ? 'glass-float-dark' : 'glass-float-light'} scrollbar-hide p-3 rounded-full hover-float ${isDark ? 'dark-theme' : 'light-theme'} ${isDark ? 'glow-effect-dark' : 'glow-effect-light'} group`}
+      className={`${isDark ? 'glass-float-dark' : 'glass-float-light'} scrollbar-hide p-3 rounded-full hover-float ${isDark ? 'text-red-400' : ''}  group`}
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
+      style={{
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(20px)', // Kept your original value here
+        // Background color for this nav element is controlled by GSAP from useEffect above
+      }}
     >
       <motion.div
         initial={false}

@@ -115,7 +115,7 @@ export default function ProjectsSection() {
           className={`text-4xl md:text-5xl font-bold text-center mb-8 tracking-tighter ${isDark ? 'text-white' : 'text-gray-900'}`}
         >
           Projects I've{' '}
-          <span className="bg-gradient-to-r from-red-500 to-fuchsia-600 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-red-500 via-red-600 to-red-400 bg-clip-text text-transparent">
             Crafted
           </span>
         </motion.h2>
@@ -128,7 +128,7 @@ export default function ProjectsSection() {
               onClick={() => setActiveFilter(filter)}
               className={`px-5 py-2 rounded-full text-sm font-medium transition-colors duration-300 hover:cursor-pointer
                 ${activeFilter === filter
-                  ? 'bg-gradient-to-r from-red-500 to-fuchsia-600 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-red-500 via-red-600 to-red-400 text-white shadow-lg'
                   : `${isDark ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`
                 }`}
             >
@@ -204,7 +204,7 @@ export default function ProjectsSection() {
                       unoptimized
                     />
                     {project.featured && (
-                      <div className="absolute top-4 right-4 bg-gradient-to-r from-red-500 to-fuchsia-600 text-white text-xs px-3 py-1 rounded-full shadow-lg">
+                      <div className="absolute top-4 right-4 bg-gradient-to-r from-red-500 via-red-600 to-red-400 text-white text-xs px-3 py-1 rounded-full shadow-lg">
                         Featured
                       </div>
                     )}
@@ -350,7 +350,7 @@ export default function ProjectsSection() {
                     {selected.name}
                   </h2>
                   {selected.featured && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-red-500 to-fuchsia-600 text-white">
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-red-500 via-red-600 to-red-400 text-white">
                       Featured
                     </span>
                   )}
